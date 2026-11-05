@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#083a5b"><title>利用ガイド | 作業時間集計</title><link rel="stylesheet" href="style.css"></head>
+<body data-page="guide">
+  <div class="app-shell"><aside class="sidebar"><a href="index.html" class="sidebar-brand"><span class="brand-mark">TS</span><span>TIME<br><b>SHUKEI</b></span></a><p class="sidebar-label">WORKSPACE</p><a class="side-link" href="operator.html"><span>▣</span> 現場入力</a><a class="side-link" href="dashboard.html"><span>◫</span> 集計・ダウンロード</a><a class="side-link" href="admin.html"><span>⚙</span> 管理者設定・QR</a><a class="side-link active" href="guide.html"><span>?</span> 利用ガイド</a><div class="sidebar-foot"><span class="mode-badge">GUIDE</span><small>製造現場用システム</small></div></aside><div class="app-main">
+    <header class="topbar"><p class="crumb">利用ガイド / 操作・運用ルール</p><button class="btn btn-secondary" onclick="window.print()">印刷する</button></header>
+    <main class="guide-layout">
+      <section class="guide-hero"><p class="eyebrow">USER MANUAL</p><h1>作業時間集計システム 利用ガイド</h1><p>現場では「読み取るだけ」。管理者は計画・QR発行・集計を担当します。</p></section>
+
+      <section class="guide-callout"><span>基本原則</span><b>工程は、作業を行う端末の設置場所で自動的に判定されます。</b><small>オペレーターは工程を手入力しません。</small></section>
+
+      <section class="guide-section"><div class="guide-section-title"><span>01</span><div><p class="panel-kicker">FOR OPERATOR</p><h2>オペレーターの通常作業</h2></div></div><p class="guide-lead">各工程の固定端末で、次の順番にQRを読み取ります。</p><div class="guide-flow"><article><b>1</b><h3>作業者QR</h3><p>自分の作業者カードを読み取る。</p></article><i>→</i><article><b>2</b><h3>Part QR</h3><p>部品・トレー・かんばんに付いたQRを読み取る。</p></article><i>→</i><article><b>3</b><h3>開始QR</h3><p>共通の開始QRを読み取る。時間計測が始まる。</p></article><i>→</i><article><b>4</b><h3>完了QR</h3><p>共通の完了QRを読み取る。時間計測が止まる。</p></article></div><div class="guide-note"><b>工程名を選ぶ必要はありません。</b> 端末がレーザー工程に設置されていれば、記録は自動的にレーザー工程になります。</div></section>
+
+      <section class="guide-grid"><article class="guide-section"><div class="guide-section-title"><span>02</span><div><p class="panel-kicker">AFTER FINISH</p><h2>工程完了・未完了</h2></div></div><div class="choice-cards"><div><strong>工程完了</strong><p>この工程の作業が完了。Partは次の工程へ進む。</p></div><div><strong>未完了・中断</strong><p>今日の作業時間だけを止める。Partは同じ工程に残る。</p></div></div><p class="guide-lead">翌日や材料到着後は、同じ工程端末で再び「作業者QR → Part QR → 開始QR」を読み取ります。夜間・待ち時間は作業時間に入りません。</p></article>
+        <article class="guide-section"><div class="guide-section-title"><span>03</span><div><p class="panel-kicker">EXCEPTION</p><h2>問題が起きた時</h2></div></div><p class="guide-lead">追加の例外QRは使いません。作業中の画面で <b>「中断・問題を報告」</b> を押し、理由を選びます。</p><ul class="guide-list"><li>材料切れ</li><li>設備トラブル</li><li>急ぎ仕事へ切替</li><li>NG・修正</li></ul><p class="guide-note"><b>急ぎ仕事へ切替：</b>いったん完了QRで時間を止めてから、急ぎのPartを通常手順で開始します。</p></article></section>
+
+      <section class="guide-section"><div class="guide-section-title"><span>04</span><div><p class="panel-kicker">TEAM WORK</p><h2>二人作業・担当者交代</h2></div></div><div class="guide-two-col"><div><h3>二人で同時作業</h3><p>二人とも、自分の作業者QRと同じPart QRを読み取り、開始します。各人の時間を別々に記録します。</p><b>例：二人が30分作業 → 工程経過30分 / 投入工数60分・人</b></div><div><h3>翌日に別の人が継続</h3><p>前日の作業者は完了QRで時間を止めるだけです。翌日は別の作業者が、同じPart QRから開始します。</p><b>夜間の時間は加算されません。</b></div></div></section>
+
+      <section class="guide-section"><div class="guide-section-title"><span>05</span><div><p class="panel-kicker">FOR ADMIN</p><h2>管理者の作業</h2></div></div><div class="admin-guide-grid"><div><span>1</span><h3>生産計画を作成</h3><p>Part No.、数量、工程順を登録する。</p></div><div><span>2</span><h3>Part QRを発行</h3><p>管理単位ごとにQRを印刷し、Part・トレー・かんばんへ貼る。</p></div><div><span>3</span><h3>進捗を確認</h3><p>工程別の状態、作業者負荷、中断・NGを確認する。</p></div><div><span>4</span><h3>CSVを出力</h3><p>工程別時間、投入工数、中断理由、作業明細をダウンロードする。</p></div></div></section>
+
+      <section class="guide-section guide-faq"><h2>よくある確認</h2><details><summary>同じPartにQRを何枚も貼る必要がありますか？</summary><p>いいえ。原則として、管理単位ごとにPart QRは1枚です。工程・開始・完了は共通QRを使います。</p></details><details><summary>管理者が現在の工程を決めますか？</summary><p>いいえ。端末の設置工程と、オペレーターの「工程完了」操作によって実績を記録します。</p></details><details><summary>作業が途中で終わった場合は？</summary><p>完了QRで時刻を止め、「未完了・中断」を選びます。再開時に新しい作業時間として記録されます。</p></details></section>
+    </main>
+  </div></div>
+</body></html>

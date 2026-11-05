@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#083a5b">
+  <title>作業時間集計システム</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home">
+  <main class="home-shell">
+    <section class="hero">
+      <p class="eyebrow">MANUFACTURING TIME TRACKING</p>
+      <h1>作業時間集計システム</h1>
+      <p>現場の実作業時間を、QRコードで簡単に記録する</p>
+      <span id="modeBadge" class="mode-badge"></span>
+    </section>
+    <section class="portal-grid">
+      <a class="portal-card operator" href="operator.html"><span>現場用</span><strong>作業者画面</strong><small>QR読取・開始・終了・中断</small></a>
+      <a class="portal-card manager" href="dashboard.html"><span>管理用</span><strong>集計ダッシュボード</strong><small>工程時間・負荷・ボトルネック・CSV</small></a>
+      <a class="portal-card admin" href="admin.html"><span>設定用</span><strong>マスタ・QR発行</strong><small>作業者・工程・QRラベル</small></a>
+    </section>
+    <p class="home-note">作業者は「作業者QR → Part QR → 開始QR → 完了QR」を読み取るだけです。<a href="guide.html">利用ガイドを見る →</a></p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script><script src="app.js"></script>
+</body>
+</html>
