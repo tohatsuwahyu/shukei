@@ -33,8 +33,23 @@ create table if not exists public.processes (
   created_at timestamptz not null default now()
 );
 
+-- 管理者が作成する生産計画のPart管理単位。QRはこのcodeに発行する。
+create table if not exists public.parts (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique check (code = upper(code)),
+  plan_no text not null,
+  part_no text not null,
+  name text not null,
+  quantity numeric(12,2) not null default 1 check (quantity > 0),
+  route jsonb not null default '[]'::jsonb,
+  current_step integer not null default 0 check (current_step >= 0),
+  status text not null default 'ready' check (status in ('ready', 'in_progress', 'paused', 'completed')),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.work_sessions (
   id uuid primary key default gen_random_uuid(),
+  part_id uuid references public.parts(id),
   operator_id uuid not null references public.operators(id),
   process_id uuid not null references public.processes(id),
   status text not null default 'running' check (status in ('running', 'paused', 'stopped')),
@@ -44,6 +59,8 @@ create table if not exists public.work_sessions (
   created_at timestamptz not null default now(),
   check (ended_at is null or ended_at >= started_at)
 );
+
+alter table public.work_sessions add column if not exists part_id uuid references public.parts(id);
 
 create table if not exists public.work_segments (
   id uuid primary key default gen_random_uuid(),
@@ -67,6 +84,7 @@ create table if not exists public.work_events (
 create index if not exists work_sessions_started_at_idx on public.work_sessions (started_at desc);
 create index if not exists work_sessions_operator_idx on public.work_sessions (operator_id, started_at desc);
 create index if not exists work_sessions_process_idx on public.work_sessions (process_id, started_at desc);
+create index if not exists parts_status_idx on public.parts (status, created_at desc);
 create index if not exists work_segments_session_idx on public.work_segments (session_id, started_at);
 create index if not exists work_events_session_idx on public.work_events (session_id, occurred_at desc);
 
@@ -105,15 +123,16 @@ grant execute on function app_private.current_app_role() to authenticated;
 
 -- Data APIの権限を明示。anon（未ログイン）には一切付与しない。
 revoke all on all tables in schema public from anon;
-revoke all on public.profiles, public.operators, public.processes, public.work_sessions, public.work_segments, public.work_events from authenticated;
-grant select on public.profiles, public.operators, public.processes to authenticated;
-grant insert, update on public.operators, public.processes to authenticated;
+revoke all on public.profiles, public.operators, public.processes, public.parts, public.work_sessions, public.work_segments, public.work_events from authenticated;
+grant select on public.profiles, public.operators, public.processes, public.parts to authenticated;
+grant insert, update on public.operators, public.processes, public.parts to authenticated;
 grant select, insert, update on public.work_sessions, public.work_segments to authenticated;
 grant select, insert on public.work_events to authenticated;
 
 alter table public.profiles enable row level security;
 alter table public.operators enable row level security;
 alter table public.processes enable row level security;
+alter table public.parts enable row level security;
 alter table public.work_sessions enable row level security;
 alter table public.work_segments enable row level security;
 alter table public.work_events enable row level security;
@@ -135,6 +154,13 @@ create policy "process_read" on public.processes for select to authenticated usi
 create policy "process_admin_write" on public.processes for all to authenticated
 using ((select app_private.current_app_role()) = 'admin')
 with check ((select app_private.current_app_role()) = 'admin');
+
+drop policy if exists "part_read" on public.parts;
+drop policy if exists "part_admin_write" on public.parts;
+create policy "part_read" on public.parts for select to authenticated using (true);
+create policy "part_admin_write" on public.parts for all to authenticated
+using ((select app_private.current_app_role()) in ('manager', 'admin'))
+with check ((select app_private.current_app_role()) in ('manager', 'admin'));
 
 drop policy if exists "session_read" on public.work_sessions;
 drop policy if exists "session_insert" on public.work_sessions;
