@@ -1,23 +1,17 @@
 <!doctype html>
-<html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#083a5b"><title>作業QR入力 | 作業時間集計</title><link rel="stylesheet" href="style.css"></head>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#083a5b"><title>作業スキャン | 作業時間集計</title><link rel="stylesheet" href="style.css"></head>
 <body data-page="operator" class="operator-terminal">
-  <main class="terminal-shell">
-    <header class="terminal-header"><a href="index.html" class="terminal-brand"><span class="brand-mark">TS</span><span>作業時間集計</span></a><span id="modeBadge" class="mode-badge"></span></header>
-    <section class="terminal-intro"><p class="eyebrow">WORKER TERMINAL</p><h1 id="operatorHint">作業者QRをスキャンしてください</h1><p>画面操作は不要です。QRを順番に読み取るだけです。</p></section>
-    <section class="operator-steps"><div class="step active"><b>01</b><span>作業者QR</span></div><i></i><div class="step"><b>02</b><span>Part QR</span></div><i></i><div class="step"><b>03</b><span>開始QR</span></div><i></i><div class="step"><b>04</b><span>完了QR</span></div></section>
-    <section class="terminal-card">
-      <div id="scanStatus" class="scan-status scan-wait">待機中</div>
-      <div id="selectionSummary" class="terminal-summary"><div><span>作業者</span><b>未選択</b></div><div><span>Part / 工程</span><b>未選択</b></div><div><span>開始時刻</span><b id="startedAt">—</b></div></div>
-      <button id="openScanner" class="btn btn-primary terminal-scan">QRコードを読み取る</button>
-      <div id="reader" class="reader hidden"></div>
-      <details class="manual-box demo-only"><summary>デモ用：QR文字を手入力</summary><form id="manualScanForm"><input id="manualCode" autocomplete="off" placeholder="例：OP:OP001" required><button class="btn btn-secondary">読取</button></form><p><code>OP:OP001 → PART:PT-001 → ACT:START → ACT:STOP</code></p></details>
-    </section>
-    <section id="issueArea" class="issue-area hidden"><p>材料切れ・設備異常・急ぎ仕事・NGの時だけ使用</p><button id="openIssueMenu" class="btn btn-quiet">中断・問題を報告</button></section>
-    <p class="terminal-footer">通常作業では、作業者QR・Part QR・開始QR・完了QRの4回だけです。<a href="guide.html">利用ガイド</a></p>
-  </main>
-  <dialog id="issueDialog"><form method="dialog"><h2>中断・問題を選択</h2><p>QRではなく、該当する理由を一度だけ選びます。</p><div class="issue-grid"><button data-event="HOLD_MATERIAL" value="default" class="issue-choice">材料切れ</button><button data-event="HOLD_MACHINE" value="default" class="issue-choice">設備トラブル</button><button data-event="URGENT_SWITCH" value="default" class="issue-choice">急ぎ仕事へ切替</button><button data-event="NG" value="default" class="issue-choice">NG・修正</button></div><menu><button value="cancel" class="btn btn-quiet">戻る</button></menu></form></dialog>
-  <dialog id="noteDialog"><form method="dialog" id="noteForm"><h2 id="noteTitle">理由を入力</h2><p>必要なら内容を短く入力してください。</p><textarea id="eventNote" rows="3" placeholder="例：材料入荷待ち"></textarea><menu><button value="cancel" class="btn btn-quiet">キャンセル</button><button id="confirmEvent" value="default" class="btn btn-primary">記録する</button></menu></form></dialog>
-  <dialog id="finishDialog"><form method="dialog"><h2>今回の作業を終了します</h2><p>この工程は完了しましたか？</p><div class="finish-grid"><button data-finish="complete" value="default" class="finish-complete">工程完了<br><small>次の工程へ進める</small></button><button data-finish="paused" value="default" class="finish-paused">未完了・中断<br><small>同じ工程を後で再開する</small></button></div><menu><button value="cancel" class="btn btn-quiet">戻る</button></menu></form></dialog>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/html5-qrcode" defer></script><script src="config.js"></script><script src="app.js"></script>
+<main class="kiosk-shell">
+<header class="kiosk-header"><div class="terminal-brand"><span class="brand-mark">TS</span><b>作業時間集計</b></div><span id="workerBadge" class="worker-badge">作業者を読み取ってください</span></header>
+<section class="kiosk-content">
+<p class="eyebrow">WORKER TERMINAL</p><h1 id="operatorHint">作業者QRをスキャンしてください</h1><p id="kioskSub" class="kiosk-sub">最初に作業者カードを読み取ります。</p>
+<section id="scanPanel" class="kiosk-scan-panel"><div id="reader" class="reader"></div><i class="scan-beam"></i><p>カメラにQRコードをかざしてください</p></section>
+<section id="partPanel" class="part-panel hidden"><span id="partStatus" class="scan-status scan-wait">開始待ち</span><p class="part-caption">現在の作業</p><h2 id="partTitle">—</h2><b id="partProcess" class="part-process">—</b><div class="part-info"><div><span>標準時間</span><b id="standardTime">—</b></div><div><span>累計実作業</span><b id="actualTime">—</b></div><div><span>数量</span><b id="partQuantity">—</b></div></div><div id="workActions" class="work-actions"></div><button id="scanAnother" class="text-button">別のPartをスキャン</button></section>
+<details class="manual-box demo-only"><summary>デモ用：QR文字を手入力</summary><form id="manualScanForm"><input id="manualCode" placeholder="例：OP:OP001 または PART:PT-001" required><button class="btn btn-secondary">読取</button></form></details>
+</section>
+<footer class="kiosk-footer"><span id="modeBadge" class="mode-badge"></span><button id="changeWorker" class="text-button">作業者を変更</button></footer>
+</main>
+<dialog id="issueDialog"><form method="dialog"><h2>中断・問題を選択</h2><div class="issue-grid"><button data-event="HOLD_MATERIAL" class="issue-choice">材料切れ</button><button data-event="HOLD_MACHINE" class="issue-choice">設備トラブル</button><button data-event="URGENT_SWITCH" class="issue-choice">急ぎ仕事へ切替</button><button data-event="NG" class="issue-choice">NG・修正</button></div><menu><button class="btn btn-quiet">戻る</button></menu></form></dialog>
+<dialog id="noteDialog"><form method="dialog" id="noteForm"><h2 id="noteTitle">理由を入力</h2><textarea id="eventNote" rows="3" placeholder="内容（任意）"></textarea><menu><button value="cancel" class="btn btn-quiet">キャンセル</button><button value="default" class="btn btn-primary">記録する</button></menu></form></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/html5-qrcode" defer></script><script src="config.js"></script><script src="app.js"></script>
 </body></html>
