@@ -126,3 +126,5 @@ body{background:var(--tsh-bg);color:var(--tsh-ink);font-family:-apple-system,Bli
 .signage-operators td:last-child{text-align:right;font-variant-numeric:tabular-nums}
 @media(max-width:1050px){.signage-columns{grid-template-columns:1fr}.signage-columns .table-wrap{max-height:none}}
 @media(max-width:640px){.signage-page .signage-layout{padding:16px 12px}.signage-login{margin:20px auto;padding:20px}.signage-login h1{font-size:26px}.signage-kpis{gap:8px}.signage-kpi{min-height:78px;display:block;padding:12px}.signage-kpi span{display:block;font-size:12px}.signage-kpi strong{font-size:22px}.signage-clock{font-size:13px;padding:9px}.signage-heading{align-items:flex-start;gap:12px}.signage-heading h1{font-size:27px}.signage-columns>.panel{padding:15px}.signage-columns .table-wrap{max-height:55vh}}
+
+.master-denied{max-width:860px;margin:24px 0;padding:26px}.master-denied h2{margin:5px 0 10px;color:#18364e}.master-denied p:last-child{max-width:680px;color:#60788a;line-height:1.7}
