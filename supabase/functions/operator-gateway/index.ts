@@ -1,0 +1,221 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+const PROJECT_URL = Deno.env.get("SUPABASE_URL")!;
+const legacyServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const newSecretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
+const serviceKey = legacyServiceKey || newSecretKeys.default;
+const publicKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
+const publicKey = Deno.env.get("SUPABASE_ANON_KEY") || publicKeys.default || serviceKey;
+const ORIGIN = "https://tohatsuwahyu.github.io";
+
+function json(body: unknown, status = 200, origin = ORIGIN) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Vary": "Origin",
+    },
+  });
+}
+
+function tokenHex() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256(value: string) {
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function dbHeaders(extra: Record<string, string> = {}) {
+  if (!serviceKey) throw new Error("SERVER_KEY_MISSING");
+  const h: Record<string, string> = { apikey: serviceKey, "Content-Type": "application/json", ...extra };
+  if (legacyServiceKey) h.Authorization = "Bearer " + legacyServiceKey;
+  return h;
+}
+
+async function db(path: string, init: RequestInit = {}) {
+  const res = await fetch(PROJECT_URL + "/rest/v1/" + path, {
+    ...init,
+    headers: { ...dbHeaders(), ...(init.headers as Record<string, string> || {}) },
+  });
+  const text = await res.text();
+  let value: any = null;
+  try { value = text ? JSON.parse(text) : null; } catch { value = text; }
+  if (!res.ok) throw new Error(value?.message || value?.hint || "DATABASE_REQUEST_FAILED");
+  return value;
+}
+
+function query(values: Record<string, string>) {
+  return new URLSearchParams(values).toString();
+}
+
+async function adminUser(req: Request) {
+  const auth = req.headers.get("Authorization") || "";
+  const jwt = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  if (!jwt) throw new Error("ADMIN_LOGIN_REQUIRED");
+  const res = await fetch(PROJECT_URL + "/auth/v1/user", {
+    headers: { apikey: publicKey, Authorization: "Bearer " + jwt },
+  });
+  if (!res.ok) throw new Error("ADMIN_LOGIN_REQUIRED");
+  const user = await res.json();
+  const rows = await db("profiles?" + query({ id: "eq." + user.id, select: "role", limit: "1" }));
+  if (!rows[0] || rows[0].role !== "admin") throw new Error("ADMIN_ONLY");
+  return user;
+}
+
+async function verifyOperator(code: string, token: string) {
+  if (!/^[A-Z0-9._-]{2,40}$/.test(code) || !/^[a-f0-9]{64}$/i.test(token)) {
+    throw new Error("OPERATOR_QR_INVALID");
+  }
+  const rows = await db("operators?" + query({
+    code: "eq." + code,
+    active: "eq.true",
+    select: "id,code,name,active,qr_token_hash",
+    limit: "1",
+  }));
+  const operator = rows[0];
+  if (!operator?.qr_token_hash || operator.qr_token_hash !== await sha256(token.toLowerCase())) {
+    throw new Error("OPERATOR_QR_INVALID");
+  }
+  return { id: operator.id, code: operator.code, name: operator.name };
+}
+
+async function snapshot(operator: any, code: string) {
+  const partRows = await db("parts?" + query({ code: "eq." + code, select: "*", limit: "1" }));
+  const part = partRows[0];
+  if (!part) throw new Error("PART_NOT_FOUND");
+  if (part.status === "completed") throw new Error("PART_COMPLETED");
+  const processRows = await db("processes?" + query({ active: "eq.true", select: "*" }));
+  const processId = (part.route || [])[part.current_step || 0];
+  const process = processRows.find((p: any) => p.id === processId);
+  if (!process) throw new Error("PROCESS_NOT_FOUND");
+  const sessions = await db("work_sessions?" + query({
+    part_id: "eq." + part.id,
+    select: "id,part_id,operator_id,process_id,status,started_at,ended_at",
+    order: "started_at.desc",
+    limit: "300",
+  }));
+  const ids = sessions.map((s: any) => s.id);
+  let segments: any[] = [];
+  if (ids.length) {
+    segments = await db("work_segments?" + query({
+      session_id: "in.(" + ids.join(",") + ")",
+      select: "id,session_id,segment_type,started_at,ended_at",
+      limit: "1000",
+    }));
+  }
+  return { operator, part, process, processes: processRows, sessions, segments };
+}
+
+function clientError(e: unknown) {
+  const message = e instanceof Error ? e.message : "REQUEST_FAILED";
+  const messages: Record<string, string> = {
+    ADMIN_LOGIN_REQUIRED: "管理者ログインが必要です。",
+    ADMIN_ONLY: "作業者QRの発行は管理者専用です。",
+    OPERATOR_QR_INVALID: "作業者QRが無効です。管理者に再発行を依頼してください。",
+    PART_NOT_FOUND: "登録されていないPart QRです。",
+    PART_COMPLETED: "このPartは全工程が完了しています。",
+    PROCESS_NOT_FOUND: "工程情報を確認できません。生産計画と工程マスタを確認してください。",
+    ROUTE_FINISHED: "このPartは全工程が完了しています。",
+    OPERATOR_ALREADY_RUNNING: "別の作業を中断してから開始してください。",
+    NO_RUNNING_SESSION: "終了する作業がありません。",
+    OTHER_OPERATOR_RUNNING: "他の作業者がこの工程を作業中です。最後の人が工程完了を選んでください。",
+    INVALID_RESULT: "操作内容を確認してください。",
+    INVALID_EVENT: "中断理由を確認してください。",
+    SERVER_KEY_MISSING: "Supabase Edge Functionのサーバーキー設定が必要です。",
+  };
+  if (message === "PART_COMPLETED") return messages.PART_COMPLETED;
+  if (message === "PART_NOT_FOUND") return messages.PART_NOT_FOUND;
+  if (message === "ROUTE_FINISHED") return messages.ROUTE_FINISHED;
+  if (message === "PROCESS_NOT_FOUND") return messages.PROCESS_NOT_FOUND;
+  if (message === "OPERATOR_ALREADY_RUNNING") return messages.OPERATOR_ALREADY_RUNNING;
+  if (message === "NO_RUNNING_SESSION") return messages.NO_RUNNING_SESSION;
+  if (message === "OTHER_OPERATOR_RUNNING") return messages.OTHER_OPERATOR_RUNNING;
+  if (message === "ADMIN_ONLY") return messages.ADMIN_ONLY;
+  if (message === "ADMIN_LOGIN_REQUIRED") return messages.ADMIN_LOGIN_REQUIRED;
+  if (message === "OPERATOR_QR_INVALID") return messages.OPERATOR_QR_INVALID;
+  if (message === "INVALID_RESULT") return messages.INVALID_RESULT;
+  if (message === "INVALID_EVENT") return messages.INVALID_EVENT;
+  if (message === "SERVER_KEY_MISSING") return messages.SERVER_KEY_MISSING;
+  if (message === "PART_NOT_FOUND") return messages.PART_NOT_FOUND;
+  if (message === "PART_COMPLETED") return messages.PART_COMPLETED;
+  if (message === "PROCESS_NOT_FOUND") return messages.PROCESS_NOT_FOUND;
+  return "Supabaseの記録に失敗しました。管理者に連絡してください。";
+}
+
+Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("Origin");
+  if (origin && origin !== ORIGIN) return json({ error: "ORIGIN_NOT_ALLOWED" }, 403, ORIGIN);
+  if (req.method === "OPTIONS") return new Response("ok", {
+    headers: {
+      "Access-Control-Allow-Origin": ORIGIN,
+      "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Vary": "Origin",
+    },
+  });
+  if (req.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+  try {
+    const body = await req.json();
+    if (body.action === "issue_qr") {
+      await adminUser(req);
+      const id = String(body.operator_id || "");
+      const rows = await db("operators?" + query({
+        id: "eq." + id,
+        active: "eq.true",
+        select: "id,code,name",
+        limit: "1",
+      }));
+      const operator = rows[0];
+      if (!operator) throw new Error("OPERATOR_NOT_FOUND");
+      const token = tokenHex();
+      await db("operators?id=eq." + encodeURIComponent(operator.id), {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({ qr_token_hash: await sha256(token) }),
+      });
+      return json({ qr: "OP:" + operator.code + ":" + token, name: operator.name });
+    }
+
+    if (body.action === "identify" || body.action === "part" || body.action === "start" || body.action === "close") {
+      const operator = await verifyOperator(String(body.code || "").toUpperCase(), String(body.token || ""));
+      if (body.action === "identify") return json({ operator });
+
+      const partCode = String(body.part_code || "").trim().toUpperCase();
+      if (!/^[A-Z0-9._/-]{1,80}$/.test(partCode)) throw new Error("PART_NOT_FOUND");
+
+      if (body.action === "start") {
+        await db("rpc/operator_start", {
+          method: "POST",
+          body: JSON.stringify({ p_part_code: partCode, p_operator_id: operator.id }),
+        });
+      } else if (body.action === "close") {
+        const allowed = ["STOP", "HOLD_MATERIAL", "HOLD_MACHINE", "URGENT_SWITCH", "NG"];
+        const eventType = String(body.event_type || "STOP");
+        if (!allowed.includes(eventType)) throw new Error("INVALID_EVENT");
+        const result = String(body.result || "");
+        const note = String(body.note || "").slice(0, 500);
+        await db("rpc/operator_close", {
+          method: "POST",
+          body: JSON.stringify({
+            p_part_code: partCode,
+            p_operator_id: operator.id,
+            p_result: result,
+            p_event_type: eventType,
+            p_note: note,
+          }),
+        });
+        return json({ ok: true });
+      }
+      return json(await snapshot(operator, partCode));
+    }
+    return json({ error: "UNKNOWN_ACTION" });
+  } catch (e) {
+    return json({ error: clientError(e) });
+  }
+});
