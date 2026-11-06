@@ -56,3 +56,45 @@ body{background:var(--tsh-bg);color:var(--tsh-ink);font-family:-apple-system,Bli
 @media(max-width:1100px){.sidebar{width:72px;padding:15px 8px}.sidebar-brand{margin:0 0 20px;padding:10px;justify-content:center}.sidebar-brand .brand-product,.sidebar-label,.side-link{font-size:0}.sidebar-brand .company-logo{width:40px;height:40px}.side-link{padding:13px 0;text-align:center;margin:3px 0}.side-link span{font-size:17px;width:auto}.sidebar-foot{left:8px;right:8px;text-align:center}.sidebar-foot small{display:none}.dashboard-layout{width:calc(100% - 32px);padding:26px 16px 48px}}
 @media(max-width:900px){.genpinhyo-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.genpinhyo-fields .field-wide{grid-column:span 2}}
 @media(max-width:620px){.genpinhyo-fields{grid-template-columns:1fr}.genpinhyo-fields .field-wide{grid-column:span 1}.plan-form-footer{align-items:stretch;flex-direction:column}.plan-form-footer .btn{width:100%}.dashboard-layout{width:100%;padding:18px 12px}.panel{padding:17px}.topbar{height:56px}.crumb{font-size:12px}}
+
+
+/* TSH FLOW operator terminal */
+.operator-terminal{min-height:100dvh;background:#f3f6f8;color:#183149}
+.operator-app{min-height:100dvh;display:flex;flex-direction:column;padding:clamp(12px,2vw,24px) clamp(14px,4vw,56px) 14px}
+.operator-header{width:min(1120px,100%);margin:0 auto;min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid #d9e2e8}
+.operator-brand{display:flex;align-items:center;gap:11px;color:#193b55}
+.operator-brand .company-logo{width:38px;height:38px;object-fit:contain;background:#fff;border-radius:3px;padding:2px}
+.operator-brand span{display:flex;flex-direction:column;gap:2px}.operator-brand b{font-size:14px;letter-spacing:.08em}.operator-brand small{font-size:10px;color:#74899a;letter-spacing:.05em}
+.worker-badge{min-height:36px;padding:8px 13px;border:1px solid #d3dfe6;border-radius:4px;background:#fff;color:#31566f;font-size:12px;font-weight:700}
+.operator-stage{width:min(960px,100%);margin:auto;padding:clamp(22px,5vh,56px) 0}
+.operator-heading{text-align:center;margin:0 auto 22px}
+.operator-step{margin:0 0 9px;color:#237b83;font-size:11px;font-weight:800;letter-spacing:.14em}
+.operator-heading h1{margin:0;color:#153650;font-size:clamp(25px,4vw,38px);line-height:1.35;letter-spacing:.01em}
+.operator-heading>p:last-child{margin:9px 0 0;color:#647b8c;font-size:14px}
+.operator-scan-card{width:min(720px,100%);margin:0 auto;border:1px solid #d8e2e8;border-radius:6px;background:#fff;padding:clamp(14px,3vw,28px)}
+.reader-frame{position:relative;width:min(100%,520px);height:clamp(245px,44vh,390px);margin:0 auto;border-radius:4px;overflow:hidden;background:#102f46;display:grid;place-items:center}
+.reader-frame #reader{width:100%!important;height:100%!important;border:0!important;background:#102f46}
+.reader-frame #reader video{width:100%!important;height:100%!important;object-fit:cover!important}
+.reader-frame #reader__scan_region{min-height:100%!important}
+.reader-frame #reader__dashboard_section{display:none!important}
+.scan-corners{position:absolute;inset:18% 27%;border:2px solid rgba(255,255,255,.88);pointer-events:none}
+.scan-corners:before,.scan-corners:after{content:"";position:absolute;inset:-2px;border:2px solid transparent}
+.scan-beam{left:8%;right:8%;top:50%;height:2px;background:#32b5a9;box-shadow:0 0 12px rgba(50,181,169,.75)}
+.camera-message{text-align:center;margin:15px 0 2px;color:#516d81;font-size:13px;font-weight:650}
+.operator-footer{width:min(1120px,100%);margin:0 auto;display:flex;justify-content:flex-end;border-top:1px solid #d9e2e8;padding-top:10px}
+.operator-footer .text-button{font-size:12px}
+.operator-app .part-panel{width:min(820px,100%);margin:0 auto;padding:clamp(18px,4vw,34px);border:1px solid #d8e2e8;border-radius:6px;background:#fff;box-shadow:none}
+.operator-app .part-caption{margin:18px 0 5px;font-size:12px;color:#74899a}
+.operator-app .part-panel h2{font-size:clamp(22px,3.2vw,32px);line-height:1.3}
+.operator-app .part-info{margin-top:20px}
+.operator-app .work-actions{gap:12px}
+.operator-app .kiosk-action{min-height:64px;font-size:clamp(17px,2vw,21px);border-radius:5px}
+.operator-app .text-button{min-height:42px}
+.operator-app dialog{max-width:min(560px,calc(100vw - 24px));border:1px solid #d8e2e8;border-radius:8px;padding:clamp(18px,4vw,28px)}
+.operator-app dialog::backdrop{background:rgba(13,36,54,.48)}
+.operator-app dialog h2{font-size:20px;color:#183149}
+.operator-app .issue-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.operator-app .issue-choice{min-height:64px}
+@media(min-width:900px) and (orientation:landscape){.operator-stage{display:flex;flex-direction:column;justify-content:center;padding:18px 0}.operator-scan-card{display:grid;grid-template-columns:minmax(300px,1fr) minmax(220px,.65fr);align-items:center;gap:25px}.operator-scan-card .reader-frame{width:100%;height:min(50vh,360px)}.camera-message{grid-column:2;margin:0;text-align:left}}
+@media(max-width:640px){.operator-app{padding:8px 12px 10px}.operator-header{min-height:48px}.operator-brand .company-logo{width:32px;height:32px}.operator-brand b{font-size:12px}.operator-brand small{font-size:9px}.worker-badge{font-size:11px;padding:7px 9px;max-width:53vw;text-align:center}.operator-stage{padding:18px 0}.operator-heading{margin-bottom:15px}.operator-heading h1{font-size:25px}.operator-heading>p:last-child{font-size:13px}.operator-scan-card{padding:12px}.reader-frame{height:min(49vh,350px);min-height:230px}.scan-corners{inset:18% 20%}.camera-message{font-size:12px}.operator-footer{padding-top:6px}.operator-app .part-panel{padding:17px 14px}.operator-app .part-info{grid-template-columns:1fr 1fr}.operator-app .work-actions{grid-template-columns:1fr}.operator-app .kiosk-action{min-height:58px}.operator-app .issue-grid{grid-template-columns:1fr 1fr}.operator-app dialog menu{padding-left:0}}
+@media(max-width:380px){.operator-brand small{display:none}.worker-badge{max-width:58vw}.operator-heading h1{font-size:22px}.reader-frame{min-height:210px}.operator-app .issue-grid{grid-template-columns:1fr}}
