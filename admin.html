@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#083a5b">
   <title>生産計画・QR | 作業時間集計</title>
-  <link rel="stylesheet" href="style.css?v=be97ddc6">
+  <link rel="stylesheet" href="style.css?v=genpinhyo01">
 </head>
 <body data-page="admin">
   <div class="app-shell">
@@ -62,26 +62,37 @@
             <button id="importCsv" type="button" class="btn btn-primary">CSVを取り込む</button>
             <button id="downloadTemplate" type="button" class="btn btn-secondary">取込テンプレート</button>
           </div>
-          <p id="importMessage" class="notice">対応列：生産計画No. / Part QR / 図番 / 品名 / 数量 / 工程順</p>
+          <p id="importMessage" class="notice">対応列：製番 / 得意先 / 機種 / 品番 / 図番 / 品名 / 数量 / 納期 / Part QR / 工程順</p>
         </section>
 
         <section class="panel manual-plan-panel">
           <div class="panel-title">
             <div>
-              <p class="panel-kicker">個別登録</p>
+              <p class="panel-kicker">現品票入力</p>
               <h2>生産計画を1件ずつ登録</h2>
             </div>
-            <span class="table-count">例外対応</span>
+            <span class="table-count">個別・緊急品</span>
           </div>
-          <p class="panel-copy">CSVにない計画、緊急品、修正分だけをここから登録します。登録後すぐにPart QRを発行できます。</p>
-          <form id="planForm" class="manual-plan-form">
-            <label>生産計画No.<input id="planNo" required placeholder="例：P-2026-001"></label>
-            <label>Part QRコード<input id="partCode" required placeholder="例：PT-001"></label>
-            <label>図番<input id="partNo" required placeholder="例：A-100"></label>
-            <label>品名<input id="partName" required placeholder="例：ブラケット"></label>
-            <label>数量<input id="partQuantity" type="number" min="1" value="1" required></label>
-            <div class="route-field"><span>工程順</span><div id="routeOptions" class="route-options"></div></div>
-            <button class="btn btn-primary manual-plan-submit">登録してPart QRを作る</button>
+          <p class="panel-copy">CSVにない計画、緊急品、修正分は、現品票と同じ情報を入力して登録します。</p>
+          <form id="planForm" class="genpinhyo-form">
+            <div class="form-section-heading"><span>01</span><div><b>現品票情報</b><small>得意先・製品情報を入力</small></div></div>
+            <div class="genpinhyo-fields">
+              <label>得意先<input id="planCustomer" required placeholder="例：株式会社○○"></label>
+              <label>機種<input id="planModel" placeholder="例：BP-200"></label>
+              <label>製番 / 生産計画No.<input id="planNo" required placeholder="例：P-2026-001"></label>
+              <label>受注No.<input id="planOrderNo" placeholder="例：SO-001"></label>
+              <label>品番<input id="planProductNo" required placeholder="例：AB-1001"></label>
+              <label>図番<input id="partNo" required placeholder="例：A-100"></label>
+              <label class="field-wide">品名<input id="partName" required placeholder="例：ブラケット"></label>
+              <label>数量<input id="partQuantity" type="number" min="1" value="1" required></label>
+              <label>納期<input id="planDueDate" type="date"></label>
+              <label>ロットNo.<input id="planLotNo" placeholder="任意"></label>
+              <label>Part QRコード<input id="partCode" required placeholder="例：PT-001"></label>
+              <label class="field-wide">備考<input id="planNote" placeholder="任意"></label>
+            </div>
+            <div class="form-section-heading"><span>02</span><div><b>工程順</b><small>現場で進む順に選択</small></div></div>
+            <div class="route-field"><div id="routeOptions" class="route-options"></div></div>
+            <div class="plan-form-footer"><p>Part QRはこの登録後に表示・印刷できます。</p><button class="btn btn-primary manual-plan-submit">登録してPart QRを作る</button></div>
           </form>
           <p id="planFormMessage" class="notice">工程マスタを登録すると、ここで工程順を選択できます。</p>
         </section>
@@ -97,18 +108,18 @@
           <p class="panel-copy">ここで現在工程と進捗を確認し、必要なPart QRをすぐに表示・印刷します。</p>
           <div class="table-wrap">
             <table class="production-table">
-              <thead><tr><th>生産計画No.</th><th>Part QR</th><th>図番・品名</th><th>数量</th><th>現在工程</th><th>状態</th><th></th></tr></thead>
+              <thead><tr><th>製番</th><th>得意先</th><th>機種</th><th>品番・図番</th><th>品名</th><th>数量</th><th>納期</th><th>現在工程</th><th>状態</th><th></th></tr></thead>
               <tbody id="planList"></tbody>
             </table>
           </div>
         </section>
 
         <details class="admin-master">
-          <summary><span>マスタ設定</span><small>作業者・工程を登録</small></summary>
+          <summary><span>管理者専用マスタ</span><small>ここから作業者を追加・作業者QRを発行します</small></summary>
           <div class="master-inner panel-grid">
             <article class="panel">
               <p class="panel-kicker">作業者マスタ</p>
-              <h2>作業者を1名ずつ登録</h2>
+              <h2>作業者を追加・QR発行</h2><p class="panel-copy">新しい作業者はここで追加します。メール・PINは不要です。</p>
               <form id="operatorMasterForm" class="stack-form">
                 <input id="newOperatorCode" placeholder="コード（例：OP004）" required>
                 <input id="newOperatorName" placeholder="氏名" required>
@@ -171,6 +182,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="config.js?v=f5672f93"></script>
-  <script src="app.js?v=c26e7fe5"></script>
+  <script src="app.js?v=genpinhyo01"></script>
 </body>
 </html>
