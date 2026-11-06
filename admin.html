@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#083a5b">
   <title>生産計画・QR | 作業時間集計</title>
-  <link rel="stylesheet" href="style.css?v=868a9d63">
+  <link rel="stylesheet" href="style.css?v=20261106a">
 </head>
 <body data-page="admin">
   <div class="app-shell">
     <aside class="sidebar">
-      <a href="index.html" class="sidebar-brand"><span class="brand-mark">TS</span><span>TIME<br><b>SHUKEI</b></span></a>
-      <p class="sidebar-label">WORKSPACE</p>
+      <a href="index.html" class="sidebar-brand" aria-label="TOHATSU HATSUJO 作業時間集計"><img class="company-logo" src="assets/tsh-logo.svg" alt="TOHATSU HATSUJO"><span class="brand-product">作業時間<br><b>集計システム</b></span></a>
+      <p class="sidebar-label">メニュー</p>
       <a class="side-link" href="operator.html"><span>▣</span> 現場スキャン</a>
       <a class="side-link" href="dashboard.html"><span>◫</span> 集計・ダウンロード</a>
       <a class="side-link active" href="admin.html"><span>⚙</span> 生産計画・QR</a>
@@ -30,9 +30,9 @@
       <main class="dashboard-layout">
         <section class="page-heading">
           <div>
-            <p class="eyebrow">PRODUCTION CONTROL</p>
-            <h1>生産計画・Part QR</h1>
-            <p class="heading-copy">電脳工場の計画を取り込み、現場実績をこのアプリで管理します。</p>
+            <p class="eyebrow">生産管理</p>
+            <h1>生産計画・QR発行</h1>
+            <p class="heading-copy">電脳工場の計画を登録し、現場で使用するPart QRを発行します。</p>
           </div>
         </section>
 
@@ -51,8 +51,8 @@
         <section class="panel import-panel">
           <div class="panel-title">
             <div>
-              <p class="panel-kicker">DENNOU KOUJOU IMPORT</p>
-              <h2>生産計画を取り込む</h2>
+              <p class="panel-kicker">電脳工場連携</p>
+              <h2>生産計画をCSVで取り込む</h2>
             </div>
             <span class="table-count">CSV</span>
           </div>
@@ -65,10 +65,31 @@
           <p id="importMessage" class="notice">対応列：生産計画No. / Part QR / 図番 / 品名 / 数量 / 工程順</p>
         </section>
 
+        <section class="panel manual-plan-panel">
+          <div class="panel-title">
+            <div>
+              <p class="panel-kicker">個別登録</p>
+              <h2>生産計画を1件ずつ登録</h2>
+            </div>
+            <span class="table-count">例外対応</span>
+          </div>
+          <p class="panel-copy">CSVにない計画、緊急品、修正分だけをここから登録します。登録後すぐにPart QRを発行できます。</p>
+          <form id="planForm" class="manual-plan-form">
+            <label>生産計画No.<input id="planNo" required placeholder="例：P-2026-001"></label>
+            <label>Part QRコード<input id="partCode" required placeholder="例：PT-001"></label>
+            <label>図番<input id="partNo" required placeholder="例：A-100"></label>
+            <label>品名<input id="partName" required placeholder="例：ブラケット"></label>
+            <label>数量<input id="partQuantity" type="number" min="1" value="1" required></label>
+            <div class="route-field"><span>工程順</span><div id="routeOptions" class="route-options"></div></div>
+            <button class="btn btn-primary manual-plan-submit">登録してPart QRを作る</button>
+          </form>
+          <p id="planFormMessage" class="notice">工程マスタを登録すると、ここで工程順を選択できます。</p>
+        </section>
+
         <section class="panel plan-list-panel">
           <div class="panel-title">
             <div>
-              <p class="panel-kicker">PRODUCTION PLANS</p>
+              <p class="panel-kicker">登録済み計画</p>
               <h2>生産計画一覧</h2>
             </div>
             <span id="planCount" class="table-count">0 件</span>
@@ -86,16 +107,17 @@
           <summary><span>マスタ設定</span><small>作業者・工程を登録</small></summary>
           <div class="master-inner panel-grid">
             <article class="panel">
-              <p class="panel-kicker">OPERATOR QR</p>
-              <h2>作業者を登録</h2>
+              <p class="panel-kicker">作業者マスタ</p>
+              <h2>作業者を1名ずつ登録</h2>
               <form id="operatorMasterForm" class="stack-form">
                 <input id="newOperatorCode" placeholder="コード（例：OP004）" required>
                 <input id="newOperatorName" placeholder="氏名" required>
-                <button class="btn btn-primary">登録して作業者QRを作る</button>
+                <button class="btn btn-primary">登録・作業者QRを表示</button>
               </form>
+              <div class="operator-qr-list"><div><b>登録済み作業者</b><small>QRを表示してカードに印刷します</small></div><div id="operatorQrList" class="operator-qr-rows"></div></div>
             </article>
             <article class="panel">
-              <p class="panel-kicker">PROCESS MASTER</p>
+              <p class="panel-kicker">工程マスタ</p>
               <h2>工程を登録</h2>
               <p class="panel-copy">工程別QRは発行しません。</p>
               <form id="processMasterForm" class="stack-form">
@@ -106,8 +128,8 @@
               </form>
             </article>
             <article class="panel master-import-panel">
-              <p class="panel-kicker">MASTER CSV</p>
-              <h2>作業者・工程を一括登録</h2>
+              <p class="panel-kicker">一括登録</p>
+              <h2>作業者・工程をCSVで登録</h2>
               <p class="panel-copy">会社の実データだけをCSVで取り込みます。既存コードは更新されます。</p>
               <div class="master-import-grid">
                 <div>
@@ -129,8 +151,8 @@
         <section class="panel qr-panel">
           <div class="panel-title">
             <div>
-              <p class="panel-kicker">PRINT CENTER</p>
-              <h2>QRラベルを発行・印刷</h2>
+              <p class="panel-kicker">QRラベル</p>
+              <h2>QRを表示・印刷</h2>
             </div>
           </div>
           <p class="panel-copy">現場で使うQRは作業者QRとPart QRの2種類だけです。開始・工程完了・中断はタブレット画面で選びます。</p>
@@ -149,6 +171,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="config.js?v=f5672f93"></script>
-  <script src="app.js?v=96cb1dc1"></script>
+  <script src="app.js?v=20261106a"></script>
 </body>
 </html>
