@@ -522,3 +522,99 @@ dialog.dialog::backdrop { background: rgba(10, 30, 46, .5); backdrop-filter: blu
 /* table cell wrapping fixes */
 .due { white-space: nowrap; }
 .sg-table td:nth-child(1), .sg-table td:nth-child(5), .plan-table td:nth-child(2) { white-space: nowrap; }
+
+/* ============================================================
+ * Bright & high-contrast theme (gemba + office)
+ * ============================================================ */
+:root {
+  --navy: #0f3c63; --navy-2: #0a2c4a; --blue: #1673c4; --blue-700: #0f5ca0; --teal: #0e9aa0; --teal-50: #d9f3f2;
+  --ink: #0f2a40; --muted: #3d586d; --line: #c9dae7; --line-soft: #e1ebf3; --bg: #eaf3fb; --paper: #fff;
+  --ok: #0f8a4f; --ok-bg: #d3f2e1; --warn: #a15c00; --warn-bg: #ffe9b8; --bad: #c42d24; --bad-bg: #fbd9d5; --info: #1673c4; --info-bg: #d9eafb;
+  --shadow: 0 1px 2px rgba(15, 60, 99, .08), 0 8px 24px rgba(15, 60, 99, .08);
+}
+body { font-size: 15px; background: linear-gradient(180deg, #e3f0fb 0, #eef6fc 340px, #eef6fc 100%) fixed; color: var(--ink); }
+.muted, .lead, .panel-note, .hint, .form-msg { color: #36516a; }
+td small, .kpi > div > small, .event small, .job-meta dt, .job-total span { color: #4a657b; }
+.page-head h1 { font-size: clamp(26px, 2.8vw, 33px); color: #0c2a45; }
+.panel h2 { color: #0c2f4d; font-size: 18px; }
+.eyebrow, .kicker { color: #0a7f8c; }
+
+/* panels get a colored top edge so sections are easy to tell apart */
+.panel { border-color: #bcd2e3; border-top: 4px solid #1e88d6; }
+.grid-2 .panel:nth-child(2) { border-top-color: #12a5a0; }
+.panel .count { background: #cdeeee; color: #07666c; }
+.sidebar { background: linear-gradient(180deg, #0f3c63, #0b3050); }
+.side-link { color: #e2edf6; }
+.side-link.active { background: #1d86cf; box-shadow: none; }
+.side-link:hover { background: rgba(255, 255, 255, .13); }
+.topbar { background: #fff; border-bottom: 2px solid #cfe1ef; }
+
+/* buttons */
+.btn-primary { background: linear-gradient(180deg, #1c82d6, #1673c4); border-color: #1366b0; box-shadow: 0 2px 6px rgba(22, 115, 196, .3); }
+.btn-primary:hover:not(:disabled) { background: #0f5ca0; }
+.btn-secondary { border-color: #8db3cf; color: #0f4b7a; background: #fff; }
+.btn-secondary:hover:not(:disabled) { background: #e8f3fc; }
+input, select, textarea { border-color: #94b5cd; }
+
+/* KPI cards: four clear colors */
+.kpi { border: 0; color: var(--ink); }
+.kpi:nth-child(1) { background: linear-gradient(135deg, #d9ecfd, #f1f8ff); box-shadow: inset 5px 0 0 #1e88d6, var(--shadow); }
+.kpi:nth-child(2) { background: linear-gradient(135deg, #d3f2e1, #effaf4); box-shadow: inset 5px 0 0 #14a35d, var(--shadow); }
+.kpi:nth-child(3) { background: linear-gradient(135deg, #ffe9b8, #fff7e0); box-shadow: inset 5px 0 0 #eb9d0c, var(--shadow); }
+.kpi:nth-child(4) { background: linear-gradient(135deg, #fbd9d5, #fdeeec); box-shadow: inset 5px 0 0 #d93a2f, var(--shadow); }
+.kpi:nth-child(1) .kpi-icon { background: #1e88d6; color: #fff; }
+.kpi:nth-child(2) .kpi-icon { background: #14a35d; color: #fff; }
+.kpi:nth-child(3) .kpi-icon { background: #eb9d0c; color: #fff; }
+.kpi:nth-child(4) .kpi-icon { background: #d93a2f; color: #fff; }
+.kpi p { color: #2f4b61; font-size: 13px; }
+.kpi strong { font-size: 32px; color: #0c2a45; }
+
+/* tables / chips / status */
+th { background: #dfecf7; color: #234a68; }
+tbody tr:hover td { background: #f0f7fd; }
+.pill { font-size: 12.5px; padding: 4px 11px; }
+.pill-ok { background: #c3eed6; color: #0a6b3c; }
+.pill-warn { background: #ffe0a0; color: #8a4f00; }
+.pill-bad { background: #f9c9c4; color: #a82219; }
+.pill-neutral { background: #dce8f2; color: #35536b; }
+.pill-done { background: #cfe4f9; color: #0f5ca0; }
+.chip { border-color: #8db3cf; color: #1f4a6c; font-weight: 700; }
+.chip.on { background: #1673c4; border-color: #1673c4; }
+.tab.on { background: #1673c4; }
+.bar { background: #d5e5f1; height: 12px; }
+.bar i { background: linear-gradient(90deg, #1e88d6, #14b3a8); }
+.route i { background: #c3d6e5; }
+.route i.done { background: #14a35d; }
+.route i.cur { background: #1e88d6; }
+.alert-warn { background: #fff0c4; border-color: #f0c660; color: #5c3b00; }
+.alert-info { background: #d9ecfd; border-color: #9cc9ee; }
+.auth-card { border-top: 4px solid #1e88d6; }
+
+/* kiosk: big, bright, obvious buttons */
+.kiosk { background: radial-gradient(circle at 50% -10%, #cfeefb, transparent 45%), #e8f3fb; }
+.k-head { border-bottom-color: #b6cfe0; }
+.k-steps li.active { background: #1673c4; }
+.k-steps li.done { background: #c3eed6; color: #0a6b3c; }
+.scan-card, .job-card { border: 2px solid #b6d3ea; box-shadow: 0 10px 30px rgba(15, 80, 140, .12); }
+.kbtn { font-size: clamp(19px, 2.4vw, 24px); }
+.kbtn-primary { background: linear-gradient(180deg, #1fb36b, #129a58); box-shadow: 0 10px 22px rgba(18, 154, 88, .35); }
+.kbtn-xl { background: linear-gradient(180deg, #1fb36b, #129a58); }
+.kbtn-warn { background: #ffd978; border-color: #e6ac1f; color: #5c3600; }
+.kbtn-quiet { background: #fff; border: 2px solid #9fbfd6; color: #1f4a6c; }
+.timer-box { background: linear-gradient(135deg, #0f3c63, #1673c4); }
+.worker-chip { border: 2px solid #b6d3ea; }
+.job-process { color: #0a8a90; }
+.job-route li.cur { background: #1673c4; }
+.job-route li.done { background: #c3eed6; color: #0a6b3c; }
+.job-progress i { background: linear-gradient(90deg, #1e88d6, #14b3a8); }
+
+/* signage */
+.sg-kpi { border-left-width: 8px; }
+.sg-kpi.ok { background: #e3f7ec; }
+.sg-kpi.warn { background: #fff3d3; }
+.sg-kpi.bad { background: #fde5e2; }
+.sg-kpi strong { color: #0c2a45; }
+
+/* home */
+.home-shell { background: radial-gradient(circle at 88% 4%, rgba(48, 198, 185, .25), transparent 30%), linear-gradient(150deg, #f3faff, #dcecf8); }
+.portal { border: 2px solid #c4dbec; }
