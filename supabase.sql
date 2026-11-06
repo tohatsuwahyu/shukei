@@ -191,15 +191,7 @@ using (exists (select 1 from public.work_sessions s where s.id = session_id));
 create policy "event_insert" on public.work_events for insert to authenticated
 with check (exists (select 1 from public.work_sessions s where s.id = session_id));
 
--- 初期マスタ。会社の実名に後から置き換えてよい。
-insert into public.operators (code, name) values
-  ('OP001', '田中 太郎'), ('OP002', '佐藤 花子'), ('OP003', '鈴木 健')
-on conflict (code) do nothing;
-insert into public.processes (code, name, standard_minutes) values
-  ('LASER', 'レーザー工程', 25), ('BEND', '曲げ工程', 30), ('SPOT', 'スポット工程', 20),
-  ('WELD', '溶接工程', 45), ('ASSEMBLY', '組立工程', 40), ('INSPECT', '検査工程', 15)
-on conflict (code) do nothing;
-
+-- マスタはAdmin画面で会社の実データを登録する。ダミーの作業者・工程は作成しない。
 -- 管理者アカウント作成後、メールアドレスを入れて一度実行:
 -- update public.profiles set role = 'admin'
 -- where id = (select id from auth.users where email = 'admin@example.com');
