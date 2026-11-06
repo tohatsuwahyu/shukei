@@ -1,9 +1,47 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#083a5b"><title>TSH FLOW | Manufacturing Operations</title><link rel="stylesheet" href="style.css?v=8494aebc"></head>
-<body data-page="home" class="home-page">
-<main class="home-shell">
-<nav class="home-nav"><a class="home-brand" href="index.html" aria-label="TOHATSU HATSUJO TSH FLOW"><img class="company-logo" src="assets/tsh-logo.svg" alt="TOHATSU HATSUJO"><span>TSH<br><b>FLOW</b></span></a><div class="home-nav-right"><span id="modeBadge" class="mode-badge"></span><a href="guide.html">利用ガイド</a></div></nav>
-<section class="home-hero"><div class="hero-copy"><p class="eyebrow">TSH FLOW / MANUFACTURING OPERATIONS</p><h1>現場の流れを、<br><em>迷わず正確に。</em></h1><p>QRスキャンだけで作業時間を記録。工程の進捗、作業者負荷、停止理由をひとつの画面で見える化します。</p><div class="hero-actions"><a class="hero-primary" href="operator.html"><span>▣</span> 現場でスキャンを開始</a><a class="hero-link" href="dashboard.html">管理ダッシュボードを見る →</a></div></div><div class="hero-visual"><div class="visual-top"><span class="live-dot"></span> LIVE PRODUCTION</div><div class="visual-main"><span class="visual-icon">▣</span><p>SCAN TO WORK</p><b>作業者QRを<br>スキャンしてください</b><i></i></div><div class="visual-data"><div><span>本日の実作業</span><b>6.8 h</b></div><div><span>進行中 Part</span><b>12</b></div></div></div></section>
-<section class="home-portals"><a class="home-card card-operator" href="operator.html"><span class="card-icon">▣</span><p>FOR OPERATOR</p><h2>現場スキャン</h2><small>作業者QRとPart QRだけ。<br>開始・完了・中断を大きなボタンで。</small><b>作業画面を開く →</b></a><a class="home-card card-manager" href="dashboard.html"><span class="card-icon">◫</span><p>FOR MANAGER</p><h2>実績ダッシュボード</h2><small>進捗、工程別時間、負荷、停止・NGを確認。<br>計算結果はCSV出力。</small><b>集計画面を開く →</b></a><a class="home-card card-admin" href="admin.html"><span class="card-icon">⚙</span><p>FOR ADMIN</p><h2>計画・QR発行</h2><small>電脳工場CSVを一括取込。<br>Part QRを発行・印刷。</small><b>管理画面を開く →</b></a></section>
-<section class="home-flow"><span>QRは2種類だけ</span><div><b>01</b><p>作業者QR</p></div><i>→</i><div><b>02</b><p>Part QR</p></div><i>→</i><div><b>03</b><p>画面で開始・完了</p></div></section>
-</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=f5672f93"></script><script src="app.js?v=67db85ef"></script></body></html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12324b">
+  <title>TSH FLOW | Manufacturing Operations</title>
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css?v=2026110601">
+</head>
+<body data-page="home" class="home">
+  <div class="home-shell">
+    <nav class="home-nav">
+      <a class="home-brand" href="index.html" aria-label="TSH FLOW ホーム"><img class="logo" src="assets/tsh-logo.png" alt="TOHATSU HATSUJO" width="114" height="50"><span><b>TSH FLOW</b><small>Manufacturing Operations</small></span></a>
+      <div class="home-nav-right"><span id="netBadge" class="net-badge"></span><a href="guide.html" data-i="help"><span>利用ガイド</span></a></div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">TSH FLOW / MANUFACTURING OPERATIONS</p>
+        <h1>現場の流れを、<br><em>迷わず正確に。</em></h1>
+        <p class="hero-lead">QRをスキャンするだけで作業時間を記録。工程の進捗、作業者の負荷、停止の理由をひとつの画面で見える化します。</p>
+        <div class="hero-actions">
+          <a class="hero-btn" href="operator.html" data-i="scan"><span>現場でスキャンを開始</span></a>
+          <a class="hero-link" href="dashboard.html">管理ダッシュボードを見る →</a>
+        </div>
+      </div>
+      <ol class="hero-flow" aria-label="現場の使い方">
+        <li><b>1</b><div><h3>作業者QR</h3><p>最初に1回、カードをかざす</p></div></li>
+        <li><b>2</b><div><h3>Part QR</h3><p>現品票または製品のQRをかざす</p></div></li>
+        <li><b>3</b><div><h3>開始・完了・中断</h3><p>大きなボタンで記録</p></div></li>
+      </ol>
+    </section>
+
+    <section class="portals">
+      <a class="portal p-operator" href="operator.html"><span class="portal-icon" data-i="scan"></span><p>FOR OPERATOR</p><h2>現場スキャン</h2><small>作業者QRとPart QRだけ。開始・完了・中断を大きなボタンで。日本語 / Bahasa Indonesia 対応。</small><b>作業画面を開く →</b></a>
+      <a class="portal p-manager" href="dashboard.html"><span class="portal-icon" data-i="chart"></span><p>FOR MANAGER</p><h2>実績・分析</h2><small>進捗、工程別時間、負荷、停止・NGを確認。標準時間との比較とCSV出力に対応。</small><b>集計画面を開く →</b></a>
+      <a class="portal p-admin" href="admin.html"><span class="portal-icon" data-i="clipboard"></span><p>FOR ADMIN</p><h2>計画・QR発行</h2><small>電脳工場CSVを内容確認つきで取込。Part QRをまとめて印刷。</small><b>管理画面を開く →</b></a>
+      <a class="portal p-signage" href="signage.html"><span class="portal-icon" data-i="monitor"></span><p>FOR SHOP FLOOR</p><h2>現場モニター</h2><small>大型モニター向けのライブ表示。現在工程・納期・作業者を自動更新。</small><b>モニターを開く →</b></a>
+    </section>
+  </div>
+  <script src="vendor/supabase-js-2.45.4.min.js"></script>
+  <script src="config.js?v=2026110601"></script>
+  <script src="app.js?v=2026110601"></script>
+</body>
+</html>

@@ -7,8 +7,12 @@ const serviceKey = legacyServiceKey || newSecretKeys.default;
 const publicKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
 const publicKey = Deno.env.get("SUPABASE_ANON_KEY") || publicKeys.default || serviceKey;
 const ORIGIN = "https://tohatsuwahyu.github.io";
+// 追加で許可するOrigin（カンマ区切り、例: http://localhost:8000）。未設定なら本番のみ。
+const ALLOWED = [ORIGIN, ...(Deno.env.get("ALLOWED_ORIGINS") || "").split(",").map((s) => s.trim()).filter(Boolean)];
 
-function json(body: unknown, status = 200, origin = ORIGIN) {
+let currentOrigin = ORIGIN;
+function json(body: unknown, status = 200, origin = currentOrigin) {
+  // origin は呼び出し側で検証済みの値のみ渡す
   return new Response(JSON.stringify(body), {
     status,
     headers: {
@@ -54,7 +58,7 @@ function query(values: Record<string, string>) {
   return new URLSearchParams(values).toString();
 }
 
-async function adminUser(req: Request) {
+async function staffUser(req: Request, roles: string[] = ["admin"]) {
   const auth = req.headers.get("Authorization") || "";
   const jwt = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!jwt) throw new Error("ADMIN_LOGIN_REQUIRED");
@@ -64,7 +68,7 @@ async function adminUser(req: Request) {
   if (!res.ok) throw new Error("ADMIN_LOGIN_REQUIRED");
   const user = await res.json();
   const rows = await db("profiles?" + query({ id: "eq." + user.id, select: "role", limit: "1" }));
-  if (!rows[0] || rows[0].role !== "admin") throw new Error("ADMIN_ONLY");
+  if (!rows[0] || !roles.includes(rows[0].role)) throw new Error("ADMIN_ONLY");
   return user;
 }
 
@@ -112,58 +116,47 @@ async function snapshot(operator: any, code: string) {
   return { operator, part, process, processes: processRows, sessions, segments };
 }
 
+const MESSAGES: Record<string, string> = {
+  ADMIN_LOGIN_REQUIRED: "管理者ログインが必要です。",
+  ADMIN_ONLY: "この操作は管理者・生産管理のみ可能です。",
+  OPERATOR_QR_INVALID: "作業者QRが無効です。管理者に再発行を依頼してください。",
+  OPERATOR_NOT_FOUND: "作業者が見つかりません。",
+  PART_NOT_FOUND: "登録されていないPart QRです。",
+  PART_COMPLETED: "このPartは全工程が完了しています。",
+  PROCESS_NOT_FOUND: "工程情報を確認できません。生産計画と工程マスタを確認してください。",
+  ROUTE_FINISHED: "このPartは全工程が完了しています。",
+  OPERATOR_ALREADY_RUNNING: "別の作業を中断してから開始してください。",
+  NO_RUNNING_SESSION: "終了する作業がありません。",
+  OTHER_OPERATOR_RUNNING: "他の作業者が同じ工程で作業中です。最後の人が工程完了を選んでください。",
+  INVALID_RESULT: "操作内容を確認してください。",
+  INVALID_EVENT: "中断理由を確認してください。",
+  INVALID_END_TIME: "終了時刻が開始より前、または未来です。",
+  UNKNOWN_ACTION: "未対応の操作です。Edge Functionの更新が必要な可能性があります。",
+  SERVER_KEY_MISSING: "Supabase Edge Functionのサーバーキー設定が必要です。",
+};
 function clientError(e: unknown) {
-  const message = e instanceof Error ? e.message : "REQUEST_FAILED";
-  const messages: Record<string, string> = {
-    ADMIN_LOGIN_REQUIRED: "管理者ログインが必要です。",
-    ADMIN_ONLY: "作業者QRの発行は管理者専用です。",
-    OPERATOR_QR_INVALID: "作業者QRが無効です。管理者に再発行を依頼してください。",
-    PART_NOT_FOUND: "登録されていないPart QRです。",
-    PART_COMPLETED: "このPartは全工程が完了しています。",
-    PROCESS_NOT_FOUND: "工程情報を確認できません。生産計画と工程マスタを確認してください。",
-    ROUTE_FINISHED: "このPartは全工程が完了しています。",
-    OPERATOR_ALREADY_RUNNING: "別の作業を中断してから開始してください。",
-    NO_RUNNING_SESSION: "終了する作業がありません。",
-    OTHER_OPERATOR_RUNNING: "他の作業者がこの工程を作業中です。最後の人が工程完了を選んでください。",
-    INVALID_RESULT: "操作内容を確認してください。",
-    INVALID_EVENT: "中断理由を確認してください。",
-    SERVER_KEY_MISSING: "Supabase Edge Functionのサーバーキー設定が必要です。",
-  };
-  if (message === "PART_COMPLETED") return messages.PART_COMPLETED;
-  if (message === "PART_NOT_FOUND") return messages.PART_NOT_FOUND;
-  if (message === "ROUTE_FINISHED") return messages.ROUTE_FINISHED;
-  if (message === "PROCESS_NOT_FOUND") return messages.PROCESS_NOT_FOUND;
-  if (message === "OPERATOR_ALREADY_RUNNING") return messages.OPERATOR_ALREADY_RUNNING;
-  if (message === "NO_RUNNING_SESSION") return messages.NO_RUNNING_SESSION;
-  if (message === "OTHER_OPERATOR_RUNNING") return messages.OTHER_OPERATOR_RUNNING;
-  if (message === "ADMIN_ONLY") return messages.ADMIN_ONLY;
-  if (message === "ADMIN_LOGIN_REQUIRED") return messages.ADMIN_LOGIN_REQUIRED;
-  if (message === "OPERATOR_QR_INVALID") return messages.OPERATOR_QR_INVALID;
-  if (message === "INVALID_RESULT") return messages.INVALID_RESULT;
-  if (message === "INVALID_EVENT") return messages.INVALID_EVENT;
-  if (message === "SERVER_KEY_MISSING") return messages.SERVER_KEY_MISSING;
-  if (message === "PART_NOT_FOUND") return messages.PART_NOT_FOUND;
-  if (message === "PART_COMPLETED") return messages.PART_COMPLETED;
-  if (message === "PROCESS_NOT_FOUND") return messages.PROCESS_NOT_FOUND;
-  return "Supabaseの記録に失敗しました。管理者に連絡してください。";
+  const raw = e instanceof Error ? e.message : "REQUEST_FAILED";
+  const code = raw in MESSAGES ? raw : "REQUEST_FAILED";
+  return { error: MESSAGES[code] || "Supabaseの記録に失敗しました。管理者に連絡してください。", code };
 }
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
-  if (origin && origin !== ORIGIN) return json({ error: "ORIGIN_NOT_ALLOWED" }, 403, ORIGIN);
+  currentOrigin = origin && ALLOWED.includes(origin) ? origin : ORIGIN;
+  if (origin && !ALLOWED.includes(origin)) return json({ error: "ORIGIN_NOT_ALLOWED", code: "ORIGIN_NOT_ALLOWED" }, 403, ORIGIN);
   if (req.method === "OPTIONS") return new Response("ok", {
     headers: {
-      "Access-Control-Allow-Origin": ORIGIN,
+      "Access-Control-Allow-Origin": origin || ORIGIN,
       "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Vary": "Origin",
     },
   });
-  if (req.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+  if (req.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED", code: "METHOD_NOT_ALLOWED" }, 405);
   try {
     const body = await req.json();
     if (body.action === "issue_qr") {
-      await adminUser(req);
+      await staffUser(req, ["admin"]);
       const id = String(body.operator_id || "");
       const rows = await db("operators?" + query({
         id: "eq." + id,
@@ -182,9 +175,29 @@ Deno.serve(async (req: Request) => {
       return json({ qr: "OP:" + operator.code + ":" + token, name: operator.name });
     }
 
+    if (body.action === "admin_close_session") {
+      await staffUser(req, ["admin", "manager"]);
+      const sid = String(body.session_id || "");
+      if (!/^[0-9a-f-]{36}$/i.test(sid)) throw new Error("NO_RUNNING_SESSION");
+      await db("rpc/admin_close_session", {
+        method: "POST",
+        body: JSON.stringify({ p_session_id: sid, p_ended_at: body.ended_at || null, p_note: String(body.note || "").slice(0, 200) }),
+      });
+      return json({ ok: true }, 200, origin && ALLOWED.includes(origin) ? origin : ORIGIN);
+    }
+
     if (body.action === "identify" || body.action === "part" || body.action === "start" || body.action === "close") {
       const operator = await verifyOperator(String(body.code || "").toUpperCase(), String(body.token || ""));
-      if (body.action === "identify") return json({ operator });
+      if (body.action === "identify") {
+        // 終了し忘れの作業があれば返す（現場端末のバナー表示用）
+        const run = await db("work_sessions?" + query({ operator_id: "eq." + operator.id, status: "eq.running", select: "part_id,started_at", limit: "1" }));
+        let running = null;
+        if (run[0]) {
+          const pr = await db("parts?" + query({ id: "eq." + run[0].part_id, select: "code,part_no,name", limit: "1" }));
+          if (pr[0]) running = { part_code: pr[0].code, part_no: pr[0].part_no, name: pr[0].name, started_at: run[0].started_at };
+        }
+        return json({ operator, running });
+      }
 
       const partCode = String(body.part_code || "").trim().toUpperCase();
       if (!/^[A-Z0-9._/-]{1,80}$/.test(partCode)) throw new Error("PART_NOT_FOUND");
@@ -214,8 +227,8 @@ Deno.serve(async (req: Request) => {
       }
       return json(await snapshot(operator, partCode));
     }
-    return json({ error: "UNKNOWN_ACTION" });
+    throw new Error("UNKNOWN_ACTION");
   } catch (e) {
-    return json({ error: clientError(e) });
+    return json(clientError(e), 200, origin && ALLOWED.includes(origin) ? origin : ORIGIN);
   }
 });

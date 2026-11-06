@@ -3,78 +3,126 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#102f46">
+  <meta name="theme-color" content="#12324b">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>現場スキャン | TSH FLOW</title>
-  <link rel="stylesheet" href="style.css?v=8494aebc">
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css?v=2026110601">
 </head>
-<body data-page="operator" class="operator-terminal">
-  <main class="operator-app">
-    <header class="operator-header">
-      <div class="operator-brand">
-        <img class="company-logo" src="assets/tsh-logo.svg" alt="TOHATSU HATSUJO">
+<body data-page="operator" class="kiosk">
+  <div class="kiosk-app">
+    <header class="k-head">
+      <a class="k-brand" href="index.html" aria-label="TSH FLOW ホーム">
+        <img class="logo" src="assets/tsh-logo.png" alt="TOHATSU HATSUJO" width="114" height="50">
         <span><b>TSH FLOW</b><small>Manufacturing Operations</small></span>
+      </a>
+      <ol id="kSteps" class="k-steps" aria-label="操作ステップ">
+        <li data-step="1"><b>1</b><span data-t="st1">作業者</span></li>
+        <li data-step="2"><b>2</b><span data-t="st2">Part</span></li>
+        <li data-step="3"><b>3</b><span data-t="st3">作業</span></li>
+      </ol>
+      <div class="k-tools">
+        <button id="kLang" type="button" class="btn btn-ghost btn-sm" data-i="globe" aria-label="言語 / Bahasa"><span>日本語</span></button>
+        <button id="kSound" type="button" class="btn btn-ghost btn-sm" aria-label="音の切替"></button>
       </div>
-      <span id="workerBadge" class="worker-badge">作業者をスキャンしてください</span>
     </header>
 
-    <section class="operator-stage">
-      <div class="operator-heading">
-        <p class="operator-step">SCAN TO START</p>
-        <h1 id="operatorHint">作業者QRをスキャン</h1>
-        <p id="kioskSub">作業者カードをカメラにかざしてください。</p>
+    <div id="netBanner" class="net-banner hidden" role="alert"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a15 15 0 0 1 20 0M5 13a10 10 0 0 1 14 0M8.5 16.5a5 5 0 0 1 7 0M12 20h.01"/></svg><span data-t="offline">ネットワークに接続できません。再接続を待っています…</span></div>
+
+    <main class="k-stage">
+      <div id="kWorker" class="worker-chip"></div>
+
+      <section id="scanSection" class="k-scan">
+        <div class="k-heading">
+          <h1 id="kTitle">作業者QRをスキャン</h1>
+          <p id="kSub">作業者カードをカメラにかざしてください。</p>
+        </div>
+
+        <div id="runBanner" class="run-banner hidden">
+          <span class="pulse-dot"></span>
+          <div><b id="runBannerText"></b><small class="mono" id="runBannerTime">00:00:00</small></div>
+          <button id="runBannerBtn" type="button" class="btn btn-primary btn-sm">開く</button>
+        </div>
+
+        <div class="scan-card">
+          <div class="reader-frame">
+            <div id="reader"></div>
+            <div class="scan-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <span class="scan-beam" aria-hidden="true"></span>
+          </div>
+          <p id="cameraMessage" class="camera-message" aria-live="polite">カメラを起動しています…</p>
+        </div>
+
+        <div id="manualBox" class="manual hidden">
+          <form id="manualForm">
+            <label for="manualCode"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="manual">コードを手入力</span></label>
+            <div><input id="manualCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" data-tp="manualPh" placeholder="例：PT-001"><button class="btn btn-secondary" type="submit" data-t="open">開く</button></div>
+          </form>
+          <small data-t="scannerHint">バーコードリーダーも使えます</small>
+        </div>
+      </section>
+
+      <section id="jobSection" class="k-job hidden">
+        <div class="job-card">
+          <div class="job-top"><span id="jobStatus" class="pill pill-neutral"></span></div>
+          <h2 id="jobTitle">—</h2>
+          <p id="jobProcess" class="job-process">—</p>
+          <dl id="jobMeta" class="job-meta"></dl>
+          <ol id="jobRoute" class="job-route" aria-label="工程順"></ol>
+
+          <div id="timerBox" class="timer-box hidden">
+            <span data-t="thisSession">今回の作業時間</span>
+            <strong id="jobTimer" class="mono">00:00:00</strong>
+          </div>
+
+          <div class="job-total">
+            <div><span data-t="total">累計実作業</span><b id="actualTime">—</b></div>
+            <div><span data-t="std">標準（現工程まで）</span><b id="standardTime">—</b></div>
+            <div class="job-progress" aria-hidden="true"><i id="jobBar"></i></div>
+          </div>
+
+          <div id="workActions" class="work-actions"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="k-foot"><span id="kClock" class="mono">--:--</span><small>TSH FLOW</small></footer>
+
+    <div id="doneOverlay" class="done-overlay hidden" role="status">
+      <div class="done-card">
+        <span id="doneIcon" class="done-icon"></span>
+        <h2 id="doneTitle"></h2>
+        <p id="doneSub"></p>
+        <small id="doneCount"></small>
       </div>
+    </div>
+  </div>
 
-      <section id="scanPanel" class="operator-scan-card">
-        <div class="reader-frame">
-          <div id="reader" class="reader"></div>
-          <i class="scan-beam"></i>
-          <div class="scan-corners" aria-hidden="true"></div>
-        </div>
-        <p id="cameraMessage" class="camera-message">QRコードが枠内に入るようにかざしてください</p>
-      </section>
-
-      <section id="partPanel" class="part-panel hidden">
-        <span id="partStatus" class="scan-status scan-wait">開始待ち</span>
-        <p class="part-caption">作業対象</p>
-        <h2 id="partTitle">—</h2>
-        <b id="partProcess" class="part-process">—</b>
-        <div class="part-info">
-          <div><span>標準時間</span><b id="standardTime">—</b></div>
-          <div><span>累計実作業</span><b id="actualTime">—</b></div>
-          <div><span>数量</span><b id="partQuantity">—</b></div>
-        </div>
-        <div id="workActions" class="work-actions"></div>
-        <button id="scanAnother" class="text-button">別のPartをスキャン</button>
-      </section>
-    </section>
-
-    <footer class="operator-footer">
-      <button id="changeWorker" class="text-button">作業者を変更</button>
-    </footer>
-  </main>
-
-  <dialog id="issueDialog">
+  <dialog id="issueDialog" class="dialog">
     <form method="dialog">
-      <h2>中断・問題を選択</h2>
+      <h2 data-t="issueTitle">中断の理由を選択</h2>
       <div class="issue-grid">
-        <button data-event="HOLD_MATERIAL" class="issue-choice">材料切れ</button>
-        <button data-event="HOLD_MACHINE" class="issue-choice">設備トラブル</button>
-        <button data-event="URGENT_SWITCH" class="issue-choice">急ぎ仕事へ切替</button>
-        <button data-event="NG" class="issue-choice">NG・修正</button>
+        <button data-event="HOLD_MATERIAL" class="issue-choice" data-i="box"><span data-t="HOLD_MATERIAL">材料切れ</span></button>
+        <button data-event="HOLD_MACHINE" class="issue-choice" data-i="tool"><span data-t="HOLD_MACHINE">設備トラブル</span></button>
+        <button data-event="URGENT_SWITCH" class="issue-choice" data-i="zap"><span data-t="URGENT_SWITCH">急ぎ仕事へ切替</span></button>
+        <button data-event="NG" class="issue-choice" data-i="ng"><span data-t="NG">NG・修正</span></button>
       </div>
-      <menu><button class="btn btn-quiet">戻る</button></menu>
+      <menu><button class="btn btn-quiet" data-t="back">戻る</button></menu>
     </form>
   </dialog>
-  <dialog id="noteDialog">
+  <dialog id="noteDialog" class="dialog">
     <form method="dialog" id="noteForm">
-      <h2 id="noteTitle">理由を入力</h2>
-      <textarea id="eventNote" rows="3" placeholder="内容（任意）"></textarea>
-      <menu><button value="cancel" class="btn btn-quiet">キャンセル</button><button value="default" class="btn btn-primary">記録する</button></menu>
+      <h2 id="noteTitle" data-t="noteTitle">理由を入力</h2>
+      <textarea id="eventNote" rows="3" maxlength="500" data-tp="notePh" placeholder="内容（任意）"></textarea>
+      <menu><button value="cancel" class="btn btn-quiet" data-t="cancel">キャンセル</button><button value="default" class="btn btn-primary" data-t="record">記録する</button></menu>
     </form>
   </dialog>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://unpkg.com/html5-qrcode" defer></script>
-  <script src="config.js?v=f5672f93"></script>
-  <script src="app.js?v=67db85ef"></script>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="vendor/supabase-js-2.45.4.min.js"></script>
+  <script src="vendor/html5-qrcode-2.3.8.min.js"></script>
+  <script src="config.js?v=2026110601"></script>
+  <script src="app.js?v=2026110601"></script>
 </body>
 </html>

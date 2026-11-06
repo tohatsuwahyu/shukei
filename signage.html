@@ -2,69 +2,67 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#102f46">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12324b">
   <title>現場モニター | TSH FLOW</title>
-  <link rel="stylesheet" href="style.css?v=8494aebc">
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="style.css?v=2026110601">
 </head>
 <body data-page="signage" class="signage-page">
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a href="index.html" class="sidebar-brand" aria-label="TSH FLOW ホーム"><img class="company-logo" src="assets/tsh-logo.svg" alt="TOHATSU HATSUJO"><span class="brand-product">TSH<br><b>FLOW</b></span></a>
-      <p class="sidebar-label">OPERATIONS</p>
-      <a class="side-link" href="operator.html"><span>▣</span> 現場スキャン</a>
-      <a class="side-link" href="admin.html"><span>▤</span> 生産計画</a>
-      <a class="side-link" href="dashboard.html"><span>◫</span> 実績・分析</a>
-      <p class="sidebar-label nav-system-label">VISUALIZATION</p>
-      <a class="side-link active" href="signage.html"><span>▥</span> 現場モニター</a>
-      <a class="side-link" href="master.html"><span>⚙</span> マスタ・QR</a>
-      <a class="side-link" href="guide.html"><span>?</span> 利用ガイド</a>
-      <div class="sidebar-foot"><span id="modeBadge" class="mode-badge"></span><small>Manufacturing Operations</small></div>
-    </aside>
-    <div class="app-main">
-      <header class="topbar">
-        <p class="crumb">生産管理 / 現場モニター</p>
-        <div class="topbar-actions"><span id="signageUpdated" class="signage-updated"></span><button id="signageLogout" class="topbar-logout hidden" type="button">ログアウト</button></div>
-      </header>
-      <main class="dashboard-layout signage-layout">
-        <section id="signageLoginPanel" class="panel login-panel signage-login">
-          <p class="eyebrow">AUTHORIZED ACCESS</p>
-          <h1>現場モニター</h1>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main class="content content-wide">
+        <section id="loginPanel" class="auth-card hidden">
+          <span class="auth-icon" data-i="monitor"></span>
+          <h2>現場モニター</h2>
           <p>管理者または生産管理のアカウントでログインしてください。</p>
-          <form id="signageLoginForm" class="inline-form">
-            <input id="signageAccount" type="text" placeholder="ログインID または 管理者メール" autocomplete="username" required>
-            <input id="signagePassword" type="password" placeholder="パスワード" autocomplete="current-password" required>
-            <button class="btn btn-primary">ログイン</button>
+          <form id="loginForm">
+            <label>ログインID または メール<input id="loginEmail" type="text" autocomplete="username" required></label>
+            <label>PIN / パスワード<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+            <button class="btn btn-primary btn-block">ログイン</button>
           </form>
-          <p id="signageLoginMessage" class="notice"></p>
+          <p id="loginMessage" class="form-msg bad"></p>
         </section>
-        <div id="signageBoard" class="signage-board hidden">
-          <section class="page-heading signage-heading">
-            <div><p class="eyebrow">SHOP FLOOR / LIVE STATUS</p><h1>現場モニター</h1><p class="heading-copy">スキャン記録をもとに、各Partの現在工程と作業状況を表示します。</p></div>
-            <time id="signageClock" class="signage-clock"></time>
-          </section>
-          <section class="signage-kpis">
-            <article class="signage-kpi"><span>作業中</span><strong id="signageActiveCount">0 Part</strong></article>
-            <article class="signage-kpi"><span>工程待ち</span><strong id="signageWaitingCount">0 Part</strong></article>
-            <article class="signage-kpi"><span>中断・保留</span><strong id="signagePausedCount">0 Part</strong></article>
-          </section>
-          <div class="signage-columns">
-            <section class="panel signage-parts">
-              <div class="panel-title"><div><p class="panel-kicker">PART LOCATION</p><h2>Part別 現在工程・状態</h2></div><span class="table-count">直近の未完了計画</span></div>
-              <p class="panel-copy">「所在」は最後に記録された工程です。現品の物理位置は現場の運用に合わせて確認してください。</p>
-              <div class="table-wrap"><table><thead><tr><th>製番 / Part QR</th><th>得意先</th><th>品名 / 品番</th><th>現在工程</th><th>状態</th><th>作業者</th></tr></thead><tbody id="signagePartRows"></tbody></table></div>
+        <section id="deniedPanel" class="auth-card hidden">
+          <span class="auth-icon warn" data-i="alert"></span>
+          <h2>この画面は利用できません</h2>
+          <p>管理者または生産管理のアカウントでログインしてください。</p>
+        </section>
+
+        <div id="workspace" class="hidden">
+          <div class="page-head">
+            <div><p class="eyebrow">SHOP FLOOR / LIVE STATUS</p><h1>現場モニター</h1><p class="lead">スキャン記録をもとに、各Partの現在工程と作業状況を表示します。</p></div>
+            <div class="head-actions">
+              <span id="signageUpdated" class="muted small"></span>
+              <time id="signageClock" class="sg-clock"></time>
+              <button id="sgFull" type="button" class="btn btn-secondary" data-i="full"><span>全画面</span></button>
+            </div>
+          </div>
+          <section id="sgKpis" class="sg-kpis"></section>
+          <div class="sg-cols">
+            <section class="panel">
+              <div class="panel-head"><div><p class="kicker">PART LOCATION</p><h2>Part別 現在工程・状態</h2></div><span id="sgPage" class="count"></span></div>
+              <p class="panel-note">「現在工程」は最後に記録された工程です。現品の物理位置は現場の運用に合わせて確認してください。</p>
+              <div class="table-wrap"><table class="sg-table">
+                <thead><tr><th>製番 / Part QR</th><th>得意先</th><th>品名 / 品番</th><th>現在工程</th><th>納期</th><th>状態</th><th>作業者 / 経過</th></tr></thead>
+                <tbody id="signagePartRows"></tbody>
+              </table></div>
             </section>
-            <section class="panel signage-operators">
-              <div class="panel-title"><div><p class="panel-kicker">OPERATOR LOAD</p><h2>本日の作業者負荷</h2></div><span class="table-count">実作業時間</span></div>
-              <div class="table-wrap"><table><thead><tr><th>作業者</th><th>作業中</th><th>実作業</th></tr></thead><tbody id="signageOperatorRows"></tbody></table></div>
+            <section class="panel">
+              <div class="panel-head"><div><p class="kicker">OPERATOR LOAD</p><h2>本日の作業者</h2></div><span class="count">実作業時間</span></div>
+              <ul id="signageOperatorRows" class="op-list"></ul>
             </section>
           </div>
         </div>
       </main>
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=f5672f93"></script>
-  <script src="app.js?v=67db85ef"></script>
+  <nav class="tabbar" id="tabbar" aria-label="メニュー"></nav>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="vendor/supabase-js-2.45.4.min.js"></script>
+  <script src="config.js?v=2026110601"></script>
+  <script src="app.js?v=2026110601"></script>
 </body>
 </html>
