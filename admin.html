@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#083a5b">
   <title>生産計画 | TSH FLOW</title>
-  <link rel="stylesheet" href="style.css?v=c6eb8a2c">
+  <link rel="stylesheet" href="style.css?v=b1ead9ae">
 </head>
 <body data-page="admin">
   <div class="app-shell">
@@ -15,6 +15,7 @@
       <a class="side-link" href="operator.html"><span>▣</span> 現場スキャン</a>
       <a class="side-link active" href="admin.html"><span>▤</span> 生産計画</a>
       <a class="side-link" href="dashboard.html"><span>◫</span> 実績・分析</a>
+      <a class="side-link" href="signage.html"><span>▥</span> 現場モニター</a>
       <p class="sidebar-label nav-system-label">SYSTEM</p>
       <a class="side-link" href="master.html"><span>⚙</span> マスタ・QR</a>
       <a class="side-link" href="guide.html"><span>?</span> 利用ガイド</a>
@@ -116,50 +117,7 @@
           </div>
         </section>
 
-        <details class="admin-master">
-          <summary><span>管理者専用マスタ</span><small>ここから作業者を追加・作業者QRを発行します</small></summary>
-          <div class="master-inner panel-grid">
-            <article class="panel">
-              <p class="panel-kicker">作業者マスタ</p>
-              <h2>作業者を追加・QR発行</h2><p class="panel-copy">新しい作業者はここで追加します。メール・PINは不要です。</p>
-              <form id="operatorMasterForm" class="stack-form">
-                <input id="newOperatorCode" placeholder="コード（例：OP004）" required>
-                <input id="newOperatorName" placeholder="氏名" required>
-                <button class="btn btn-primary">登録・作業者QRを表示</button>
-              </form>
-              <div class="operator-qr-list"><div><b>登録済み作業者</b><small>QRを表示してカードに印刷します</small></div><div id="operatorQrList" class="operator-qr-rows"></div></div>
-            </article>
-            <article class="panel">
-              <p class="panel-kicker">工程マスタ</p>
-              <h2>工程を登録</h2>
-              <p class="panel-copy">工程別QRは発行しません。</p>
-              <form id="processMasterForm" class="stack-form">
-                <input id="newProcessCode" placeholder="工程コード（例：LASER）" required>
-                <input id="newProcessName" placeholder="工程名" required>
-                <input id="newStandardMinutes" type="number" min="0" placeholder="標準時間（分・任意）">
-                <button class="btn btn-primary">工程を登録</button>
-              </form>
-            </article>
-            <article class="panel master-import-panel">
-              <p class="panel-kicker">一括登録</p>
-              <h2>作業者・工程をCSVで登録</h2>
-              <p class="panel-copy">会社の実データだけをCSVで取り込みます。既存コードは更新されます。</p>
-              <div class="master-import-grid">
-                <div>
-                  <b>作業者マスタ</b>
-                  <input id="operatorMasterCsv" type="file" accept=".csv,.txt,text/csv">
-                  <div><button id="importOperatorMaster" type="button" class="btn btn-primary">作業者CSVを取込</button><button id="downloadOperatorTemplate" type="button" class="btn btn-secondary">テンプレート</button></div>
-                </div>
-                <div>
-                  <b>工程マスタ</b>
-                  <input id="processMasterCsv" type="file" accept=".csv,.txt,text/csv">
-                  <div><button id="importProcessMaster" type="button" class="btn btn-primary">工程CSVを取込</button><button id="downloadProcessTemplate" type="button" class="btn btn-secondary">テンプレート</button></div>
-                </div>
-              </div>
-              <p id="masterImportMessage" class="notice">作業者列：コード / 氏名　｜　工程列：工程コード / 工程名 / 標準時間（分）</p>
-            </article>
-          </div>
-        </details>
+        
 
         <section class="panel qr-panel">
           <div class="panel-title">
@@ -184,6 +142,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="config.js?v=f5672f93"></script>
-  <script src="app.js?v=842982a0"></script>
+  <script src="app.js?v=c0fa191f"></script>
 </body>
 </html>
