@@ -31,3 +31,10 @@ React / Node 不要の、GitHub Pages で動く静的Webアプリです（Supaba
 - 外部ライブラリは `vendor/` に固定バージョンで同梱（CDN障害・改ざんの影響を受けません）。
 - CSS/JSを更新したら、各HTMLの `?v=` の値を変えてキャッシュを更新してください。
 - 日付の集計は常に日本時間（Asia/Tokyo）基準です。
+
+## 休憩時間・出来高（良品/NG）
+
+- 休憩時間は「マスタ」画面の「休憩時間」で設定します。実作業時間・タイマー・CSVから自動で差し引かれます。
+- 「工程完了」を押すと、良品数とNG数の入力画面が開きます（良品の初期値は予定数量）。実績画面とCSVに表示されます。
+- 適用手順：`supabase/migrations/20261106150000_breaks_and_qty.sql` をSQL Editorで実行 → Edge Function `operator-gateway` を再デプロイ。
+- 終業時の自動中断（任意）：`supabase/optional/optional_autopause_cron.sql` を参照。

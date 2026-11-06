@@ -192,6 +192,7 @@ async function load() {
   if (!state.since) state.since = nowMs() - (HISTORY_DAYS[page] || 30) * 86400000;
   var since = new Date(state.since).toISOString();
   state.truncated = false;
+  var withQty = state.noQty !== true;
   var jobs = [
     fetchAll("operators", "id,code,name,active,created_at", function (q) { return q.eq("active", true).order("code"); }),
     fetchAll("processes", "*", function (q) { return q.eq("active", true).order("created_at"); }),
@@ -199,12 +200,21 @@ async function load() {
   ];
   if (page !== "master") {
     jobs.push(
-      fetchAll("work_sessions", "id,part_id,operator_id,process_id,status,started_at,ended_at", function (q) { return q.or("status.eq.running,started_at.gte." + since).order("started_at", { ascending: false }); }),
+      fetchAll("work_sessions", "id,part_id,operator_id,process_id,status,started_at,ended_at" + (withQty ? ",qty_good,qty_ng" : ""), function (q) { return q.or("status.eq.running,started_at.gte." + since).order("started_at", { ascending: false }); }),
       fetchAll("work_segments", "id,session_id,segment_type,started_at,ended_at", function (q) { return q.or("ended_at.is.null,started_at.gte." + since); }),
       fetchAll("work_events", "id,session_id,event_type,occurred_at,note", function (q) { return q.gte("occurred_at", since).order("occurred_at", { ascending: false }); })
     );
   }
-  var r = await Promise.all(jobs);
+  var r;
+  try { r = await Promise.all(jobs); }
+  catch (e) {
+    if (withQty && page !== "master" && /qty_/.test(String((e && e.message) || e))) { state.noQty = true; return load(); }   // SQL未適用でも動かす
+    throw e;
+  }
+  try {
+    var st = await sb.from("app_settings").select("value").eq("key", "breaks").maybeSingle();
+    if (!st.error && st.data && Array.isArray(st.data.value)) { state.breaksRaw = st.data.value; BREAKS = parseBreaks(st.data.value); }
+  } catch (_) { /* テーブル未作成なら既定値 */ }
   state.operators = r[0]; state.processes = r[1]; state.parts = r[2];
   state.sessions = r[3] || []; state.segments = r[4] || []; state.events = r[5] || [];
   state.loadedAt = nowMs();
@@ -228,11 +238,35 @@ var EVENTS = {
 function eventName(x) { return (EVENTS[x] || {}).t || x; }
 
 function procOf(part) { return part && idx.proc[(part.route || [])[part.current_step || 0]]; }
-function segMins(g, a, b) {            // 区間 [a,b) と重なる分
+/* 休憩時間（JST）。管理者が マスタ で変更。作業時間から自動で差し引く */
+var DEFAULT_BREAKS = [{ start: "10:00", end: "10:10" }, { start: "12:00", end: "12:45" }, { start: "15:00", end: "15:10" }];
+var BREAKS = parseBreaks(DEFAULT_BREAKS);
+function hmToMin(v) { var m = /^(\d{1,2}):(\d{2})$/.exec(String(v || "")); if (!m) return null; var h = +m[1], n = +m[2]; return h > 24 || n > 59 ? null : h * 60 + n; }
+function parseBreaks(list) {
+  var out = [];
+  (Array.isArray(list) ? list : []).forEach(function (b) { var s = hmToMin(b && b.start), e = hmToMin(b && b.end); if (s != null && e != null && s < e) out.push([s, e]); });
+  return out;
+}
+function breakMinutes(sMs, eMs) {      // [sMs,eMs) と休憩の重なり（分）
+  if (!BREAKS.length || !(eMs > sMs)) return 0;
+  var total = 0, d = day(sMs), guard = 0;
+  while (guard++ < 15) {
+    var base = new Date(d + "T00:00:00+09:00").getTime();
+    if (base >= eMs) break;
+    for (var i = 0; i < BREAKS.length; i++) {
+      var bs = base + BREAKS[i][0] * 60000, be = base + BREAKS[i][1] * 60000;
+      total += Math.max(0, Math.min(eMs, be) - Math.max(sMs, bs)) / 60000;
+    }
+    d = addDays(d, 1);
+  }
+  return total;
+}
+function segMins(g, a, b) {            // 区間 [a,b) と重なる実作業分（休憩を除く）
   var s = new Date(g.started_at).getTime(), e = g.ended_at ? new Date(g.ended_at).getTime() : nowMs();
   if (a != null) s = Math.max(s, a);
   if (b != null) e = Math.min(e, b);
-  return Math.max(0, (e - s) / 60000);
+  if (!(e > s)) return 0;
+  return Math.max(0, (e - s) / 60000 - breakMinutes(s, e));
 }
 function sessMins(id, a, b) {
   return (idx.segs[id] || []).reduce(function (n, g) { return g.segment_type === "work" ? n + segMins(g, a, b) : n; }, 0);
@@ -467,7 +501,8 @@ var I18N = {
     runBanner: "作業中のPartがあります：", resume: "開く", otherRun: "他の作業者が同じ工程で作業中です。最後の人が「工程完了」を選んでください。",
     idle: "操作がないため作業者を解除しました", badQr: "このQRコードは作業時間集計用ではありません。", needWorker: "最初に作業者QRを読み取ってください。",
     offline: "ネットワークに接続できません。再接続を待っています…", soundOn: "音あり", soundOff: "音なし", sec: "秒後に自動で戻ります",
-    HOLD_MATERIAL: "材料切れ", HOLD_MACHINE: "設備トラブル", URGENT_SWITCH: "急ぎ仕事へ切替", NG: "NG・修正", process: "工程"
+    HOLD_MATERIAL: "材料切れ", HOLD_MACHINE: "設備トラブル", URGENT_SWITCH: "急ぎ仕事へ切替", NG: "NG・修正", process: "工程",
+    qtyTitle: "今回の出来高を入力", qtyGood: "良品数", qtyNg: "NG数", qtyHint: "予定数量：{q}　（この工程を終えた数を入力）", qtyShown: "良品 {g} / NG {n}", qtyErr: "数量は0以上の数字で入力してください。"
   },
   id: {
     t1: "Pindai QR operator", s1: "Arahkan kartu operator ke kamera.", t2: "Pindai QR Part", s2: "Arahkan QR pada kartu barang atau produk.",
@@ -481,7 +516,8 @@ var I18N = {
     runBanner: "Ada pekerjaan yang sedang berjalan: ", resume: "Buka", otherRun: "Operator lain masih mengerjakan proses yang sama. Orang terakhir memilih “Selesai proses”.",
     idle: "Operator dilepas karena tidak ada aktivitas", badQr: "QR ini bukan untuk pencatatan waktu kerja.", needWorker: "Pindai QR operator terlebih dahulu.",
     offline: "Tidak ada koneksi jaringan. Menunggu sambungan…", soundOn: "Suara aktif", soundOff: "Suara mati", sec: "detik lagi kembali otomatis",
-    HOLD_MATERIAL: "Material habis", HOLD_MACHINE: "Mesin bermasalah", URGENT_SWITCH: "Pindah ke pekerjaan mendesak", NG: "NG / perbaikan", process: "Proses"
+    HOLD_MATERIAL: "Material habis", HOLD_MACHINE: "Mesin bermasalah", URGENT_SWITCH: "Pindah ke pekerjaan mendesak", NG: "NG / perbaikan", process: "Proses",
+    qtyTitle: "Masukkan hasil kali ini", qtyGood: "Jumlah bagus", qtyNg: "Jumlah NG", qtyHint: "Target: {q}  (isi jumlah yang selesai di proses ini)", qtyShown: "Bagus {g} / NG {n}", qtyErr: "Isi jumlah dengan angka 0 atau lebih."
   }
 };
 var ERR_ID = {
@@ -518,6 +554,7 @@ function kIndex() { // snapshot用の簡易インデックス
 }
 function kApply(d) {
   if (d.operator) K.worker = d.operator;
+  if (Array.isArray(d.breaks)) BREAKS = parseBreaks(d.breaks);
   K.part = d.part; K.process = d.process; K.processes = d.processes || []; K.sessions = d.sessions || []; K.segments = d.segments || [];
   kIndex();
 }
@@ -591,12 +628,33 @@ function kRenderJob() {
   on("#btnComplete", function () {
     var others = K.sessions.some(function (x) { return x.part_id === K.part.id && x.process_id === K.process.id && x.status === "running" && x.id !== s.id; });
     if (others) { toast(T("otherRun"), "error"); beep(false); return; }
-    kClose("complete");
+    kAskQty().then(function (q) { if (q) kClose("complete", null, null, q); });
   });
   on("#btnPause", function () { kClose("pause"); });
   on("#btnIssue", function () { $("#issueDialog").showModal(); });
 }
 
+function netSec(startIso) { var s = new Date(startIso).getTime(), e = nowMs(); return Math.max(0, (e - s) / 1000 - breakMinutes(s, e) * 60); }
+function kAskQty() {
+  return new Promise(function (resolve) {
+    var dlg = $("#qtyDialog"), p = K.part;
+    $("#qtyHint").textContent = T("qtyHint", { q: p.quantity });
+    $("#qtyGood").value = p.quantity != null ? p.quantity : 0; $("#qtyNg").value = 0;
+    var done = false;
+    var form = $("#qtyForm");
+    $$("#qtyForm .step").forEach(function (b) {
+      b.onclick = function () { var i = $("#" + b.dataset.for); i.value = Math.max(0, (Number(i.value) || 0) + Number(b.dataset.step)); };
+    });
+    form.onsubmit = function (e) {
+      if (e.submitter && e.submitter.value === "cancel") return;
+      var g = Number($("#qtyGood").value), n = Number($("#qtyNg").value);
+      if (!(g >= 0) || !(n >= 0) || $("#qtyGood").value === "" || $("#qtyNg").value === "") { e.preventDefault(); toast(T("qtyErr"), "error"); return; }
+      done = true; dlg.dataset.g = g; dlg.dataset.n = n;
+    };
+    dlg.onclose = function () { dlg.onclose = null; resolve(done ? { good: Number(dlg.dataset.g), ng: Number(dlg.dataset.n) } : null); };
+    dlg.showModal();
+  });
+}
 function kTick() {
   var clock = $("#kClock"); if (clock) clock.textContent = tm(nowMs());
   if (kStep() === 3) {
@@ -605,10 +663,10 @@ function kTick() {
     $("#actualTime").textContent = fmtMin(actual);
     $("#standardTime").textContent = std ? fmtMin(std) : "—";
     var bar = $("#jobBar"); bar.style.width = std ? Math.min(100, actual / std * 100) + "%" : "0%"; bar.parentNode.classList.toggle("over", std > 0 && actual > std);
-    if (s) $("#jobTimer").textContent = fmtClock((nowMs() - new Date(s.started_at).getTime()) / 1000);
+    if (s) $("#jobTimer").textContent = fmtClock(netSec(s.started_at));
   }
   var rb = $("#runBannerTime");
-  if (rb && K.running && !$("#runBanner").classList.contains("hidden")) rb.textContent = fmtClock((nowMs() - new Date(K.running.started_at).getTime()) / 1000);
+  if (rb && K.running && !$("#runBanner").classList.contains("hidden")) rb.textContent = fmtClock(netSec(K.running.started_at));
   var nb = $("#netBanner"); if (nb) nb.classList.toggle("hidden", navigator.onLine !== false);
 }
 
@@ -628,14 +686,14 @@ async function kStart() {
     kApply(d); beep(true); kRender(); toast(T("doneStart"), "ok");
   });
 }
-async function kClose(result, reason, note) {
+async function kClose(result, reason, note, qty) {
   return kBusy(async function () {
     var p = K.part, proc = K.process, total = partMins(p.id);
     var nextName = null;
     if (result === "complete") { var r = p.route || [], n = r.indexOf(proc.id) + 1; nextName = n < r.length ? (K.processes.filter(function (x) { return x.id === r[n]; })[0] || {}).name || "" : ""; }
-    await gateway({ action: "close", code: K.worker.code, token: K.token, part_code: p.code, result: result, event_type: reason || "STOP", note: note || "" });
+    await gateway({ action: "close", code: K.worker.code, token: K.token, part_code: p.code, result: result, event_type: reason || "STOP", note: note || "", qty_good: qty ? qty.good : null, qty_ng: qty ? qty.ng : null });
     K.part = null; K.process = null; K.sessions = []; K.segments = []; K.running = null; kIndex();
-    beep(true); kDone(result === "complete" ? "doneComplete" : "donePause", result === "complete" ? (nextName ? T("next") + nextName : T("allDone")) : "", T("totalNow") + " " + fmtMin(total));
+    beep(true); kDone(result === "complete" ? "doneComplete" : "donePause", result === "complete" ? (nextName ? T("next") + nextName : T("allDone")) : "", [qty ? T("qtyShown", { g: qty.good, n: qty.ng }) : "", T("totalNow") + " " + fmtMin(total)].filter(Boolean).join("  ·  "));
   });
 }
 function kDone(titleKey, line1, line2) {
@@ -848,10 +906,10 @@ function dashRender() {
   var staff = STAFF.indexOf(state.role) >= 0;
   $("#sessionReport").innerHTML = ss.slice().sort(function (x, y) { return new Date(y.started_at) - new Date(x.started_at); }).slice(0, 200).map(function (s) {
     var p = idx.part[s.part_id] || {}, pr = idx.proc[s.process_id] || {}, o = idx.op[s.operator_id] || {}, runningNow = s.status === "running", st = isStale(s);
-    return "<tr" + (st ? ' class="row-warn"' : "") + "><td>" + dt(s.started_at) + "</td><td>" + (s.ended_at ? tm(s.ended_at) : "—") + "</td><td><b>" + esc(p.part_no || p.code || "—") + "</b></td><td>" + esc(o.name || "—") + "</td><td>" + esc(pr.name || "—") + '</td><td class="num">' + fmtMin(sessMins(s.id, a, b)) + "</td><td>" +
+    return "<tr" + (st ? ' class="row-warn"' : "") + "><td>" + dt(s.started_at) + "</td><td>" + (s.ended_at ? tm(s.ended_at) : "—") + "</td><td><b>" + esc(p.part_no || p.code || "—") + "</b></td><td>" + esc(o.name || "—") + "</td><td>" + esc(pr.name || "—") + '</td><td class="num">' + fmtMin(sessMins(s.id, a, b)) + '</td><td class="num">' + (s.qty_good == null && s.qty_ng == null ? "—" : Number(s.qty_good || 0) + " / " + Number(s.qty_ng || 0)) + "</td><td>" +
       (runningNow ? '<span class="pill ' + (st ? "pill-bad" : "pill-ok") + '"><i class="pulse"></i>' + (st ? "終了忘れ？" : "作業中") + "</span>" : '<span class="pill pill-neutral">終了</span>') + "</td><td>" +
       (runningNow && staff ? '<button class="btn btn-secondary btn-sm" data-force="' + esc(s.id) + '">終了する</button>' : "") + "</td></tr>";
-  }).join("") || '<tr><td colspan="8" class="empty">この日の記録がありません。</td></tr>';
+  }).join("") || '<tr><td colspan="9" class="empty">この日の記録がありません。</td></tr>';
   $$("[data-force]").forEach(function (b) { b.onclick = function () { openForceClose(b.dataset.force); }; });
 
   $("#dashboardNotice").textContent = "最終更新 " + tm(state.loadedAt) + (state.since ? " ・ 直近" + Math.round((nowMs() - state.since) / 86400000) + "日分" : "");
@@ -879,10 +937,10 @@ function exportDashboardCsv() {
   var a = dayStart(D.day).getTime(), b = dayEnd(D.day).getTime(), ss = dashDaySessions();
   var rows = [["作業時間集計結果", D.day], [], ["Part別進捗"], ["Part QR", "製番", "図番", "品名", "状態", "実作業時間(分)", "標準時間・現工程まで(分)", "標準時間・全工程(分)", "納期"]]
     .concat(state.parts.map(function (p) { return [p.code, p.plan_no, p.part_no, p.name, (STATUS[p.status] || {}).t, Math.round(partMins(p.id)), Math.round(stdToDate(p)), Math.round(stdTotal(p)), p.due_date || ""]; }))
-    .concat([[], ["作業明細（当日分）"], ["開始", "終了", "Part QR", "図番", "作業者", "工程", "当日実作業(分)", "状態"]])
+    .concat([[], ["作業明細（当日分）"], ["開始", "終了", "Part QR", "図番", "作業者", "工程", "当日実作業(分・休憩除く)", "良品数", "NG数", "状態"]])
     .concat(ss.map(function (s) {
       var p = idx.part[s.part_id] || {}, o = idx.op[s.operator_id] || {}, q = idx.proc[s.process_id] || {};
-      return [s.started_at, s.ended_at || "", p.code || "", p.part_no || "", o.name || "", q.name || "", Math.round(sessMins(s.id, a, b)), s.status];
+      return [s.started_at, s.ended_at || "", p.code || "", p.part_no || "", o.name || "", q.name || "", Math.round(sessMins(s.id, a, b)), s.qty_good == null ? "" : s.qty_good, s.qty_ng == null ? "" : s.qty_ng, s.status];
     }))
     .concat([[], ["工程別 標準比較（Part×工程の累計）"], ["図番", "工程", "累計実作業(分)", "標準(分)", "達成率(%)"]]);
   var seen = {};
@@ -1183,8 +1241,31 @@ async function importMaster(file, kind) {
   await load(); renderMaster();
   return recs.length;
 }
+function renderBreakRows(list) {
+  $("#breakRows").innerHTML = list.map(function (b, i) {
+    return '<div class="break-row"><input type="time" value="' + esc(b.start) + '" data-bs="' + i + '" aria-label="開始"><span>〜</span><input type="time" value="' + esc(b.end) + '" data-be="' + i + '" aria-label="終了"><button type="button" class="btn btn-ghost btn-sm danger" data-bdel="' + i + '">削除</button></div>';
+  }).join("") || '<p class="empty">休憩時間は設定されていません。</p>';
+  $$("[data-bdel]").forEach(function (b) { b.onclick = function () { var l = readBreakRows(); l.splice(Number(b.dataset.bdel), 1); renderBreakRows(l); }; });
+}
+function readBreakRows() {
+  return $$("#breakRows .break-row").map(function (r) { return { start: $("[data-bs]", r).value, end: $("[data-be]", r).value }; });
+}
+function setupBreaks() {
+  renderBreakRows(state.breaksRaw || DEFAULT_BREAKS);
+  $("#breakAdd").onclick = function () { var l = readBreakRows(); l.push({ start: "", end: "" }); renderBreakRows(l); };
+  $("#breakSave").onclick = async function () {
+    var btn = this; btn.disabled = true;
+    try {
+      var l = readBreakRows().filter(function (b) { return b.start || b.end; });
+      l.forEach(function (b) { var s = hmToMin(b.start), e = hmToMin(b.end); if (s == null || e == null || s >= e) throw new Error("休憩時間は「開始 < 終了」の形で入力してください。"); });
+      var r = await sb.from("app_settings").upsert({ key: "breaks", value: l, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (r.error) throw r.error;
+      state.breaksRaw = l; BREAKS = parseBreaks(l); toast("休憩時間を保存しました。", "ok");
+    } catch (x) { show(x); } finally { btn.disabled = false; }
+  };
+}
 function setupMaster() {
-  renderMaster();
+  renderMaster(); setupBreaks();
   $("#operatorForm").onsubmit = async function (e) {
     e.preventDefault();
     var btn = $("button", e.target); btn.disabled = true;

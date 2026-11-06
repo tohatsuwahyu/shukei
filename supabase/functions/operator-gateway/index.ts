@@ -113,7 +113,12 @@ async function snapshot(operator: any, code: string) {
       limit: "1000",
     }));
   }
-  return { operator, part, process, processes: processRows, sessions, segments };
+  let breaks: unknown = null;
+  try {
+    const st = await db("app_settings?" + query({ key: "eq.breaks", select: "value", limit: "1" }));
+    breaks = st[0] ? st[0].value : null;
+  } catch (_) { /* 設定テーブル未作成でも動作させる */ }
+  return { operator, part, process, processes: processRows, sessions, segments, breaks };
 }
 
 const MESSAGES: Record<string, string> = {
@@ -131,6 +136,7 @@ const MESSAGES: Record<string, string> = {
   INVALID_RESULT: "操作内容を確認してください。",
   INVALID_EVENT: "中断理由を確認してください。",
   INVALID_END_TIME: "終了時刻が開始より前、または未来です。",
+  INVALID_QTY: "数量が正しくありません。",
   UNKNOWN_ACTION: "未対応の操作です。Edge Functionの更新が必要な可能性があります。",
   SERVER_KEY_MISSING: "Supabase Edge Functionのサーバーキー設定が必要です。",
 };
@@ -213,6 +219,12 @@ Deno.serve(async (req: Request) => {
         if (!allowed.includes(eventType)) throw new Error("INVALID_EVENT");
         const result = String(body.result || "");
         const note = String(body.note || "").slice(0, 500);
+        const qty = (v: unknown) => {
+          if (v === null || v === undefined || v === "") return null;
+          const n = Number(v);
+          if (!Number.isFinite(n) || n < 0 || n > 9999999) throw new Error("INVALID_QTY");
+          return Math.round(n * 100) / 100;
+        };
         await db("rpc/operator_close", {
           method: "POST",
           body: JSON.stringify({
@@ -221,6 +233,8 @@ Deno.serve(async (req: Request) => {
             p_result: result,
             p_event_type: eventType,
             p_note: note,
+            p_qty_good: qty(body.qty_good),
+            p_qty_ng: qty(body.qty_ng),
           }),
         });
         return json({ ok: true });

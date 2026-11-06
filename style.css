@@ -618,3 +618,14 @@ tbody tr:hover td { background: #f0f7fd; }
 /* home */
 .home-shell { background: radial-gradient(circle at 88% 4%, rgba(48, 198, 185, .25), transparent 30%), linear-gradient(150deg, #f3faff, #dcecf8); }
 .portal { border: 2px solid #c4dbec; }
+
+/* 数量入力・休憩設定 */
+.qty-row{display:grid;gap:6px;margin:14px 0}
+.qty-row label{font-weight:700;color:var(--navy)}
+.stepper{display:grid;grid-template-columns:64px 1fr 64px;gap:8px}
+.stepper input{font-size:28px;font-weight:800;text-align:center;min-height:64px;border:2px solid #9cc4e8;border-radius:14px;width:100%}
+.stepper .step{font-size:30px;font-weight:800;border:0;border-radius:14px;background:#e1effb;color:var(--navy);cursor:pointer}
+.stepper .step:active{background:#c9e2f7}
+.break-rows{display:grid;gap:8px;margin:10px 0 14px}
+.break-row{display:flex;align-items:center;gap:10px}
+.break-row input{min-height:44px;padding:0 10px;border:1px solid #9cc4e8;border-radius:10px;font-size:16px}
