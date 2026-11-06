@@ -1,9 +1,5 @@
-/*
-  Supabaseを作成した後だけ、下の2か所を貼り替えてください。
-  publishable key はブラウザに置いてよいキーです。
-  service_role / secret key は絶対に書かないでください。
-*/
+/* Public browser configuration. Never put a service_role or secret key here. */
 window.APP_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_PUBLISHABLE_KEY: ""
+  SUPABASE_URL: "https://ysgzhtuglxkxtkpnpmxw.supabase.co",
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_NpHz5OXLd-orJIKo44JCDg_5B4eRZoa"
 };
