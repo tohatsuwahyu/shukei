@@ -2,146 +2,131 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#083a5b">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12324b">
   <title>生産計画 | TSH FLOW</title>
-  <link rel="stylesheet" href="style.css?v=8494aebc">
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="style.css?v=2026110601">
 </head>
 <body data-page="admin">
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a href="index.html" class="sidebar-brand" aria-label="TOHATSU HATSUJO TSH FLOW"><img class="company-logo" src="assets/tsh-logo.svg" alt="TOHATSU HATSUJO"><span class="brand-product">TSH<br><b>FLOW</b></span></a>
-      <p class="sidebar-label">メニュー</p>
-      <a class="side-link" href="operator.html"><span>▣</span> 現場スキャン</a>
-      <a class="side-link active" href="admin.html"><span>▤</span> 生産計画</a>
-      <a class="side-link" href="dashboard.html"><span>◫</span> 実績・分析</a>
-      <a class="side-link" href="signage.html"><span>▥</span> 現場モニター</a>
-      <p class="sidebar-label nav-system-label">SYSTEM</p>
-      <a class="side-link" href="master.html"><span>⚙</span> マスタ・QR</a>
-      <a class="side-link" href="guide.html"><span>?</span> 利用ガイド</a>
-      <div class="sidebar-foot"><span id="modeBadge" class="mode-badge"></span><small>Manufacturing Operations</small></div>
-    </aside>
-    <div class="app-main">
-      <header class="topbar">
-        <p class="crumb">生産管理 / 生産計画</p>
-        <div class="topbar-actions">
-          <span id="loginUser" class="topbar-user hidden"></span>
-          <a class="user-chip" href="dashboard.html">集計結果へ →</a>
-          <button id="logoutButton" type="button" class="topbar-logout hidden">ログアウト</button>
-        </div>
-      </header>
-      <main class="dashboard-layout">
-        <section class="page-heading">
-          <div>
-            <p class="eyebrow">生産管理</p>
-            <h1>生産計画・QR発行</h1>
-            <p class="heading-copy">電脳工場の計画を登録し、現場で使用するPart QRを発行します。</p>
-          </div>
-        </section>
-
-        <section id="loginPanel" class="panel login-panel hidden">
-          <h2>管理者ログイン</h2>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main class="content">
+        <section id="loginPanel" class="auth-card hidden">
+          <span class="auth-icon" data-i="user"></span>
+          <h2>ログイン</h2>
           <p>管理者はメールアドレス、生産管理はログインIDとPINで入ります。</p>
-          <form id="loginForm" class="inline-form">
-            <input id="loginEmail" type="text" placeholder="ログインID または 管理者メール" autocomplete="username" required>
-            <input id="loginPassword" type="password" placeholder="PIN / パスワード" autocomplete="current-password" required>
-            <button class="btn btn-primary">ログイン</button>
+          <form id="loginForm">
+            <label>ログインID または メール<input id="loginEmail" type="text" autocomplete="username" required></label>
+            <label>PIN / パスワード<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+            <button class="btn btn-primary btn-block">ログイン</button>
           </form>
-          <p id="loginMessage" class="notice"></p>
+          <p id="loginMessage" class="form-msg bad"></p>
+        </section>
+        <section id="deniedPanel" class="auth-card hidden">
+          <span class="auth-icon warn" data-i="alert"></span>
+          <h2>この画面は利用できません</h2>
+          <p>管理者または生産管理のアカウントでログインしてください。</p>
         </section>
 
-        <div id="adminWorkspace">
-        <section class="panel import-panel">
-          <div class="panel-title">
-            <div>
-              <p class="panel-kicker">電脳工場連携</p>
-              <h2>生産計画をCSVで取り込む</h2>
-            </div>
-            <span class="table-count">CSV</span>
+        <div id="workspace" class="hidden">
+          <div class="page-head">
+            <div><p class="eyebrow">生産管理</p><h1>生産計画・QR発行</h1><p class="lead">電脳工場の計画を登録し、現場で使用するPart QRを発行します。</p></div>
+            <div class="head-actions"><a class="btn btn-secondary" href="dashboard.html" data-i="chart"><span>実績・分析へ</span></a></div>
           </div>
-          <p class="panel-copy">電脳工場から出力したCSVを選ぶだけです。同じPart QRは更新し、新しいPart QRだけ追加します。</p>
-          <div class="import-row">
-            <input id="dennouImport" type="file" accept=".csv,.txt,text/csv">
-            <button id="importCsv" type="button" class="btn btn-primary">CSVを取り込む</button>
-            <button id="downloadTemplate" type="button" class="btn btn-secondary">取込テンプレート</button>
-          </div>
-          <p id="importMessage" class="notice">対応列：製番 / 得意先 / 機種 / 品番 / 図番 / 品名 / 数量 / 納期 / Part QR / 工程順</p>
-        </section>
 
-        <section class="panel manual-plan-panel">
-          <div class="panel-title">
-            <div>
-              <p class="panel-kicker">現品票入力</p>
-              <h2>生産計画を1件ずつ登録</h2>
-            </div>
-            <span class="table-count">個別・緊急品</span>
+          <div id="adminTabs" class="tabs" role="tablist">
+            <button type="button" class="tab on" data-tab="list" role="tab" aria-selected="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>計画一覧</button>
+            <button type="button" class="tab" data-tab="import" role="tab" aria-selected="false"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg>CSV一括取込</button>
+            <button type="button" class="tab" data-tab="manual" role="tab" aria-selected="false"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>個別登録</button>
           </div>
-          <p class="panel-copy">CSVにない計画、緊急品、修正分は、現品票と同じ情報を入力して登録します。</p>
-          <form id="planForm" class="genpinhyo-form">
-            <div class="form-section-heading"><span>01</span><div><b>現品票情報</b><small>得意先・製品情報を入力</small></div></div>
-            <div class="genpinhyo-fields">
-              <label>得意先<input id="planCustomer" required placeholder="例：株式会社○○"></label>
-              <label>機種<input id="planModel" placeholder="例：BP-200"></label>
-              <label>製番 / 生産計画No.<input id="planNo" required placeholder="例：P-2026-001"></label>
-              <label>受注No.<input id="planOrderNo" placeholder="例：SO-001"></label>
-              <label>品番<input id="planProductNo" required placeholder="例：AB-1001"></label>
-              <label>図番<input id="partNo" required placeholder="例：A-100"></label>
-              <label class="field-wide">品名<input id="partName" required placeholder="例：ブラケット"></label>
-              <label>数量<input id="partQuantity" type="number" min="1" value="1" required></label>
-              <label>納期<input id="planDueDate" type="date"></label>
-              <label>ロットNo.<input id="planLotNo" placeholder="任意"></label>
-              <label>Part QRコード<input id="partCode" required placeholder="例：PT-001"></label>
-              <label class="field-wide">備考<input id="planNote" placeholder="任意"></label>
-            </div>
-            <div class="form-section-heading"><span>02</span><div><b>工程順</b><small>現場で進む順に選択</small></div></div>
-            <div class="route-field"><div id="routeOptions" class="route-options"></div></div>
-            <div class="plan-form-footer"><p>Part QRはこの登録後に表示・印刷できます。</p><button class="btn btn-primary manual-plan-submit">登録してPart QRを作る</button></div>
-          </form>
-          <p id="planFormMessage" class="notice">工程マスタを登録すると、ここで工程順を選択できます。</p>
-        </section>
 
-        <section class="panel plan-list-panel">
-          <div class="panel-title">
-            <div>
-              <p class="panel-kicker">登録済み計画</p>
-              <h2>生産計画一覧</h2>
+          <!-- 計画一覧 -->
+          <section class="tab-pane" data-pane="list">
+            <div class="panel">
+              <div class="panel-head"><div><p class="kicker">登録済み計画</p><h2>生産計画一覧</h2></div><span id="planCount" class="count">0 件</span></div>
+              <div class="filters">
+                <label class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="planSearch" type="search" placeholder="製番・品名・得意先・Part QRで検索"></label>
+                <label class="field-inline">状態<select id="planStatus"><option value="all">すべて</option><option value="ready">工程待ち</option><option value="in_progress">作業中</option><option value="paused">中断・保留</option><option value="over">納期遅れ</option><option value="completed">完了</option></select></label>
+                <label class="field-inline">並び順<select id="planSort"><option value="due">納期が近い順</option><option value="new">登録が新しい順</option><option value="plan">製番順</option></select></label>
+                <button id="planRefresh" type="button" class="btn btn-secondary btn-sm" data-i="refresh"><span>更新</span></button>
+                <button id="printPicked" type="button" class="btn btn-primary btn-sm"></button>
+              </div>
+              <div class="table-wrap"><table class="plan-table">
+                <thead><tr><th class="chk"><input id="pickAll" type="checkbox" aria-label="表示中をすべて選択"></th><th>製番 / Part QR</th><th>得意先 / 機種</th><th>品名 / 品番・図番</th><th class="num">数量</th><th>納期</th><th>現在工程</th><th>状態</th><th></th></tr></thead>
+                <tbody id="planList"></tbody>
+              </table></div>
+              <button id="planMore" type="button" class="btn btn-quiet btn-block hidden"></button>
             </div>
-            <span id="planCount" class="table-count">0 件</span>
-          </div>
-          <p class="panel-copy">ここで現在工程と進捗を確認し、必要なPart QRをすぐに表示・印刷します。</p>
-          <div class="table-wrap">
-            <table class="production-table">
-              <thead><tr><th>製番</th><th>得意先</th><th>機種</th><th>品番・図番</th><th>品名</th><th>数量</th><th>納期</th><th>現在工程</th><th>状態</th><th></th></tr></thead>
-              <tbody id="planList"></tbody>
-            </table>
-          </div>
-        </section>
+          </section>
 
-        
-
-        <section class="panel qr-panel">
-          <div class="panel-title">
-            <div>
-              <p class="panel-kicker">QRラベル</p>
-              <h2>QRを表示・印刷</h2>
+          <!-- CSV取込 -->
+          <section class="tab-pane hidden" data-pane="import">
+            <div class="panel">
+              <div class="panel-head"><div><p class="kicker">電脳工場連携</p><h2>生産計画をCSVで取り込む</h2></div><span class="count">CSV</span></div>
+              <p class="panel-note">電脳工場から出力したCSVを選ぶと、取り込み前に内容を確認できます。同じPart QRは情報のみ更新し、<b>現場で進んだ進捗は保持</b>されます。</p>
+              <div class="import-row">
+                <input id="dennouImport" type="file" accept=".csv,.txt,text/csv">
+                <button id="importCsv" type="button" class="btn btn-primary" data-i="search"><span>内容を確認</span></button>
+                <button id="downloadTemplate" type="button" class="btn btn-secondary" data-i="download"><span>取込テンプレート</span></button>
+              </div>
+              <p id="importMessage" class="form-msg">対応列：製番 / 得意先 / 機種 / 受注No. / 品番 / 図番 / 品名 / 数量 / 納期 / ロットNo. / 備考 / Part QR / 工程順（例：レーザー工程&gt;曲げ工程&gt;検査工程）</p>
+              <div id="importPreview" class="import-preview hidden"></div>
             </div>
-          </div>
-          <p class="panel-copy">現場で使うQRは作業者QRとPart QRの2種類だけです。開始・工程完了・中断はタブレット画面で選びます。</p>
-          <div class="qr-form">
-            <label>種類<select id="qrKind"><option value="operator">作業者QR</option><option value="part">Part QR</option></select></label>
-            <label id="qrTargetLabel">対象<select id="qrTarget"></select></label>
-            <button id="makeQr" type="button" class="btn btn-primary">QRを表示</button>
-            <button id="printQr" type="button" class="btn btn-secondary">印刷</button>
-          </div>
-          <div id="qrPrintArea" class="qr-output"><div id="qrcode"></div><strong id="qrTitle">QRを選んでください</strong><code id="qrValue"></code></div>
-        </section>
+          </section>
+
+          <!-- 個別登録 -->
+          <section class="tab-pane hidden" data-pane="manual">
+            <div class="panel">
+              <div class="panel-head"><div><p class="kicker">現品票入力</p><h2>生産計画を1件ずつ登録</h2></div><span class="count">個別・緊急品</span></div>
+              <p class="panel-note">CSVにない計画、緊急品、修正分は、現品票と同じ情報を入力します。同じPart QRコードを入力すると、進捗を保ったまま情報を更新します。</p>
+              <form id="planForm" class="plan-form">
+                <div class="form-step"><span>1</span><div><b>現品票情報</b><small>得意先・製品情報を入力</small></div></div>
+                <div class="field-grid">
+                  <label class="field">得意先<input id="planCustomer" required placeholder="例：株式会社○○"></label>
+                  <label class="field">機種<input id="planModel" placeholder="例：BP-200"></label>
+                  <label class="field">製番 / 生産計画No.<input id="planNo" required placeholder="例：P-2026-001"></label>
+                  <label class="field">受注No.<input id="planOrderNo" placeholder="例：SO-001"></label>
+                  <label class="field">品番<input id="planProductNo" required placeholder="例：AB-1001"></label>
+                  <label class="field">図番<input id="partNo" required placeholder="例：A-100"></label>
+                  <label class="field wide">品名<input id="partName" required placeholder="例：ブラケット"></label>
+                  <label class="field">数量<input id="partQuantity" type="number" min="1" value="1" required></label>
+                  <label class="field">納期<input id="planDueDate" type="date"></label>
+                  <label class="field">ロットNo.<input id="planLotNo" placeholder="任意"></label>
+                  <label class="field">Part QRコード<input id="partCode" required placeholder="例：PT-001" maxlength="80" autocapitalize="characters" spellcheck="false"><small class="hint">英数字と . _ / - のみ</small></label>
+                  <label class="field wide">備考<input id="planNote" placeholder="任意"></label>
+                </div>
+                <div class="form-step"><span>2</span><div><b>工程順</b><small>現場で進む順にクリックしてください</small></div></div>
+                <div id="routeOptions" class="route-picker"></div>
+                <p id="routePreview" class="route-preview"></p>
+                <div class="form-foot"><p>登録後にPart QRを表示・印刷できます。</p><button class="btn btn-primary" type="submit" data-i="qr"><span>登録してPart QRを作る</span></button></div>
+                <p id="planFormMessage" class="form-msg"></p>
+              </form>
+            </div>
+          </section>
         </div>
       </main>
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="config.js?v=f5672f93"></script>
-  <script src="app.js?v=67db85ef"></script>
+  <nav class="tabbar" id="tabbar" aria-label="メニュー"></nav>
+
+  <dialog id="qrDialog" class="dialog dialog-qr">
+    <div class="qr-sheet">
+      <div id="qrBox" class="qr-box"></div>
+      <h2 id="qrTitle"></h2>
+      <p id="qrSub" class="muted"></p>
+      <code id="qrCode"></code>
+      <p id="qrWarn" class="alert alert-warn hidden"><span>この作業者QRは再発行すると以前のカードが使えなくなります。表示は一度きりです。必ず印刷してください。</span></p>
+    </div>
+    <menu><button id="qrClose" type="button" class="btn btn-quiet">閉じる</button><button id="qrPrint" type="button" class="btn btn-primary" data-i="print"><span>印刷</span></button></menu>
+  </dialog>
+  <div id="printArea" class="print-area" aria-hidden="true"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="vendor/supabase-js-2.45.4.min.js"></script>
+  <script src="vendor/qrcode-1.0.0.min.js"></script>
+  <script src="config.js?v=2026110601"></script>
+  <script src="app.js?v=2026110601"></script>
 </body>
 </html>

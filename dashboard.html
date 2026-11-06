@@ -1,15 +1,122 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#083a5b"><title>実績・分析 | TSH FLOW</title><link rel="stylesheet" href="style.css?v=8494aebc"></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12324b">
+  <title>実績・分析 | TSH FLOW</title>
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="style.css?v=2026110601">
+</head>
 <body data-page="dashboard">
-  <div class="app-shell"><aside class="sidebar"><a href="index.html" class="sidebar-brand" aria-label="TOHATSU HATSUJO TSH FLOW"><img class="company-logo" src="assets/tsh-logo.svg" alt="TOHATSU HATSUJO"><span class="brand-product">TSH<br><b>FLOW</b></span></a><p class="sidebar-label">OPERATIONS</p><a class="side-link" href="operator.html"><span>▣</span> 現場スキャン</a><a class="side-link" href="admin.html"><span>▤</span> 生産計画</a><a class="side-link active" href="dashboard.html"><span>◫</span> 実績・分析</a><a class="side-link" href="signage.html"><span>▥</span> 現場モニター</a><p class="sidebar-label nav-system-label">SYSTEM</p><a class="side-link" href="master.html"><span>⚙</span> マスタ・QR</a><a class="side-link" href="guide.html"><span>?</span> 利用ガイド</a><div class="sidebar-foot"><span id="modeBadge" class="mode-badge"></span><small>Manufacturing Operations</small></div></aside><div class="app-main">
-  <header class="topbar"><p class="crumb">管理画面 / 実績サマリー</p><div class="header-right"><span class="live-dot"></span><span>リアルタイム集計</span></div></header>
-  <main class="dashboard-layout"><section class="page-heading"><div><p class="eyebrow">OPERATIONS OVERVIEW</p><h1>生産時間ダッシュボード</h1><p class="heading-copy">工程ごとの実績と、現場で発生したロスをひとつの画面で確認します。</p></div><div class="action-row"><a class="btn btn-secondary" href="admin.html">⚙ QR・登録</a><button id="refreshDashboard" class="btn btn-secondary">↻ 更新</button><button id="exportCsv" class="btn btn-primary">↓ 集計結果CSV</button></div></section>
-  <section class="filter-row"><label>対象日<input type="date" id="filterDate"></label><label>工程<select id="filterProcess"><option value="">全工程</option></select></label><span id="dashboardNotice" class="notice"></span></section>
-  <section id="kpiGrid" class="kpi-grid"></section>
-  <section class="panel"><div class="panel-title"><div><p class="panel-kicker">PART PROGRESS</p><h2>Part別の進捗・工程状態</h2></div><span class="table-count">リアルタイム</span></div><div class="table-wrap"><table><thead><tr><th>Part QR</th><th>品名・図番</th><th>現在工程</th><th>進捗</th><th>状態</th><th>実作業 / 標準</th></tr></thead><tbody id="partReport"></tbody></table></div></section>
-  <section class="panel-grid"><article class="panel"><h2>作業指示別 実作業時間</h2><div id="processReport"></div></article><article class="panel"><h2>作業者別 負荷</h2><div id="operatorReport"></div></article></section>
-  <section class="panel"><h2>中断・NGの記録</h2><div id="eventReport"></div></section>
-  <section class="panel"><div class="panel-title"><div><p class="panel-kicker">DETAILS</p><h2>作業明細・差異</h2></div><span class="table-count">当日の記録</span></div><div class="table-wrap"><table><thead><tr><th>開始</th><th>Part</th><th>作業者</th><th>工程</th><th>実作業</th><th>標準</th><th>差異</th><th>状態</th></tr></thead><tbody id="sessionReport"></tbody></table></div></section></main></div></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=f5672f93"></script><script src="app.js?v=67db85ef"></script>
-</body></html>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main class="content">
+        <section id="loginPanel" class="auth-card hidden">
+          <span class="auth-icon" data-i="user"></span>
+          <h2>ログイン</h2>
+          <p>管理者または生産管理のアカウントでログインしてください。</p>
+          <form id="loginForm">
+            <label>ログインID または メール<input id="loginEmail" type="text" autocomplete="username" required></label>
+            <label>PIN / パスワード<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+            <button class="btn btn-primary btn-block">ログイン</button>
+          </form>
+          <p id="loginMessage" class="form-msg bad"></p>
+        </section>
+        <section id="deniedPanel" class="auth-card hidden">
+          <span class="auth-icon warn" data-i="alert"></span>
+          <h2>この画面は利用できません</h2>
+          <p>管理者または生産管理のアカウントでログインしてください。</p>
+        </section>
+
+        <div id="workspace" class="hidden">
+          <div class="page-head">
+            <div><p class="eyebrow">OPERATIONS OVERVIEW</p><h1>実績・分析</h1><p class="lead">工程ごとの実績と、現場で発生したロスをひとつの画面で確認します。</p></div>
+            <div class="head-actions">
+              <button id="refreshDashboard" class="btn btn-secondary" data-i="refresh"><span>更新</span></button>
+              <button id="exportCsv" class="btn btn-primary" data-i="download"><span>集計CSV</span></button>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="date-nav">
+              <button id="datePrev" type="button" class="icon-btn" data-i="left" aria-label="前日"></button>
+              <input type="date" id="filterDate" aria-label="対象日">
+              <button id="dateNext" type="button" class="icon-btn" data-i="right" aria-label="翌日"></button>
+              <button id="dateToday" type="button" class="btn btn-ghost btn-sm">今日</button>
+            </div>
+            <label class="field-inline">工程<select id="filterProcess"><option value="">全工程</option></select></label>
+            <label class="switch"><input type="checkbox" id="autoRefresh"><span></span>自動更新（60秒）</label>
+            <span id="dashboardNotice" class="muted small"></span>
+          </div>
+
+          <div id="alertArea"></div>
+          <section id="kpiGrid" class="kpi-grid" aria-live="polite"></section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div><p class="kicker">PART PROGRESS</p><h2>Part別の進捗・工程状態</h2></div>
+              <span id="partCount" class="count">0 件</span>
+            </div>
+            <div class="filters">
+              <div id="partChips" class="chips" role="group" aria-label="状態で絞り込み">
+                <button type="button" class="chip on" data-chip="all">すべて <b>0</b></button>
+                <button type="button" class="chip" data-chip="in_progress">作業中 <b>0</b></button>
+                <button type="button" class="chip" data-chip="paused">中断・保留 <b>0</b></button>
+                <button type="button" class="chip" data-chip="ready">工程待ち <b>0</b></button>
+                <button type="button" class="chip" data-chip="over">納期遅れ <b>0</b></button>
+                <button type="button" class="chip" data-chip="completed">完了 <b>0</b></button>
+              </div>
+              <label class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="partSearch" type="search" placeholder="製番・品名・得意先で検索"></label>
+            </div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>製番 / Part QR</th><th>品名・図番</th><th>現在工程</th><th>納期</th><th>状態</th><th class="num">実作業 / 標準</th></tr></thead>
+              <tbody id="partReport"></tbody>
+            </table></div>
+            <button id="partMore" type="button" class="btn btn-quiet btn-block hidden"></button>
+          </section>
+
+          <section class="grid-2">
+            <article class="panel"><div class="panel-head"><div><p class="kicker">BY PROCESS</p><h2>工程別 実作業時間</h2></div></div><div id="processReport" class="bars"></div></article>
+            <article class="panel"><div class="panel-head"><div><p class="kicker">BY OPERATOR</p><h2>作業者別 負荷</h2></div></div><div id="operatorReport" class="bars"></div></article>
+          </section>
+
+          <section class="grid-2">
+            <article class="panel"><div class="panel-head"><div><p class="kicker">LOSS</p><h2>中断・NGの記録</h2></div></div><div id="eventReport" class="events"></div></article>
+            <article class="panel"><div class="panel-head"><div><p class="kicker">STANDARD vs ACTUAL</p><h2>工程別 標準時間との比較</h2></div></div>
+              <p class="panel-note">Part × 工程ごとの累計実作業を標準時間と比べます（中断・再開を合算）。</p>
+              <div class="table-wrap"><table><thead><tr><th>図番</th><th>工程</th><th class="num">累計実作業</th><th class="num">標準</th><th class="num">達成率</th></tr></thead><tbody id="varianceReport"></tbody></table></div>
+            </article>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><div><p class="kicker">DETAILS</p><h2>作業明細</h2></div><span class="count">選択日</span></div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>開始</th><th>終了</th><th>Part</th><th>作業者</th><th>工程</th><th class="num">当日の実作業</th><th>状態</th><th></th></tr></thead>
+              <tbody id="sessionReport"></tbody>
+            </table></div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+  <nav class="tabbar" id="tabbar" aria-label="メニュー"></nav>
+
+  <dialog id="forceDialog" class="dialog">
+    <form method="dialog" id="forceForm">
+      <h2>作業を終了する</h2>
+      <p id="forceInfo" class="muted"></p>
+      <label class="field">終了時刻（日本時間）<input id="forceEnd" type="datetime-local" required></label>
+      <label class="field">メモ（任意）<input id="forceNote" type="text" maxlength="200" placeholder="例：終了スキャン忘れ"></label>
+      <p class="muted small">終了時刻を実際に終わった時間に合わせると、実作業時間の水増しを防げます。</p>
+      <menu><button value="cancel" class="btn btn-quiet">キャンセル</button><button value="ok" class="btn btn-primary">終了する</button></menu>
+    </form>
+  </dialog>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="vendor/supabase-js-2.45.4.min.js"></script>
+  <script src="config.js?v=2026110601"></script>
+  <script src="app.js?v=2026110601"></script>
+</body>
+</html>

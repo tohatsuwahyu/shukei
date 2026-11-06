@@ -1,0 +1,13 @@
+{
+  "name": "TSH FLOW 作業時間集計",
+  "short_name": "TSH FLOW",
+  "start_url": "operator.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#12324b",
+  "theme_color": "#12324b",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
