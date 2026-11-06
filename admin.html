@@ -38,10 +38,10 @@
 
         <section id="loginPanel" class="panel login-panel hidden">
           <h2>管理者ログイン</h2>
-          <p>Supabase接続後、管理者アカウントでログインします。</p>
+          <p>管理者はメールアドレス、生産管理はログインIDとPINで入ります。</p>
           <form id="loginForm" class="inline-form">
-            <input id="loginEmail" type="email" placeholder="email" required>
-            <input id="loginPassword" type="password" placeholder="password" required>
+            <input id="loginEmail" type="text" placeholder="ログインID または 管理者メール" autocomplete="username" required>
+            <input id="loginPassword" type="password" placeholder="PIN / パスワード" autocomplete="current-password" required>
             <button class="btn btn-primary">ログイン</button>
           </form>
           <p id="loginMessage" class="notice"></p>
