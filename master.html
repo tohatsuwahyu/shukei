@@ -64,7 +64,7 @@
                   <input id="newOperatorName" placeholder="氏名（例：山田 太郎）" required>
                   <button class="btn btn-primary">登録・作業者QRを表示</button>
                 </form>
-                <div class="operator-qr-list"><div><b>登録済み作業者</b><small>QRを表示してカードに印刷</small></div><div id="operatorQrList" class="operator-qr-rows"></div></div>
+                <div class="operator-qr-list"><div><b>登録済み作業者</b><small>QRを発行してカードに印刷</small></div><div id="operatorQrList" class="operator-qr-rows"></div></div>
               </article>
               <article class="panel">
                 <p class="panel-kicker">PROCESS MASTER</p>
@@ -100,7 +100,7 @@
 
           <section class="panel qr-panel">
             <div class="panel-title"><div><p class="panel-kicker">QR LABEL</p><h2>QRを表示・印刷</h2></div></div>
-            <p class="panel-copy">現場で使うのは作業者QRとPart QRの2種類です。</p>
+            <p class="panel-copy">現場で使うのは作業者QRとPart QRの2種類です。作業者QRには個別の認証トークンを含めます。</p><p class="notice qr-security-note">作業者QRを再発行すると、以前のカードは使えなくなります。再発行後は新しいカードを印刷して交換してください。</p>
             <div class="qr-form">
               <label>種類<select id="qrKind"><option value="operator">作業者QR</option><option value="part">Part QR</option></select></label>
               <label>対象<select id="qrTarget"></select></label>
@@ -116,6 +116,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="config.js?v=f5672f93"></script>
-  <script src="app.js?v=9197a2f3"></script>
+  <script src="app.js?v=e4415a7e"></script>
 </body>
 </html>
