@@ -195,3 +195,26 @@ with check (exists (select 1 from public.work_sessions s where s.id = session_id
 -- 管理者アカウント作成後、メールアドレスを入れて一度実行:
 -- update public.profiles set role = 'admin'
 -- where id = (select id from auth.users where email = 'admin@example.com');
+
+
+-- 現品票（生産計画）情報の追加
+-- Applied to the production database as migration: add_genpinhyo_fields_to_parts
+alter table public.parts
+  add column if not exists customer text not null default '',
+  add column if not exists model text not null default '',
+  add column if not exists product_no text not null default '',
+  add column if not exists order_no text not null default '',
+  add column if not exists lot_no text not null default '',
+  add column if not exists due_date date,
+  add column if not exists note text not null default '';
+
+comment on column public.parts.plan_no is '製番または生産計画No.';
+comment on column public.parts.customer is '得意先';
+comment on column public.parts.model is '機種';
+comment on column public.parts.product_no is '品番';
+comment on column public.parts.part_no is '図番';
+comment on column public.parts.name is '品名';
+comment on column public.parts.order_no is '受注No.';
+comment on column public.parts.lot_no is 'ロットNo.';
+comment on column public.parts.due_date is '納期';
+comment on column public.parts.note is '備考';
