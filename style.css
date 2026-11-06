@@ -98,3 +98,31 @@ body{background:var(--tsh-bg);color:var(--tsh-ink);font-family:-apple-system,Bli
 @media(min-width:900px) and (orientation:landscape){.operator-stage{display:flex;flex-direction:column;justify-content:center;padding:18px 0}.operator-scan-card{display:grid;grid-template-columns:minmax(300px,1fr) minmax(220px,.65fr);align-items:center;gap:25px}.operator-scan-card .reader-frame{width:100%;height:min(50vh,360px)}.camera-message{grid-column:2;margin:0;text-align:left}}
 @media(max-width:640px){.operator-app{padding:8px 12px 10px}.operator-header{min-height:48px}.operator-brand .company-logo{width:32px;height:32px}.operator-brand b{font-size:12px}.operator-brand small{font-size:9px}.worker-badge{font-size:11px;padding:7px 9px;max-width:53vw;text-align:center}.operator-stage{padding:18px 0}.operator-heading{margin-bottom:15px}.operator-heading h1{font-size:25px}.operator-heading>p:last-child{font-size:13px}.operator-scan-card{padding:12px}.reader-frame{height:min(49vh,350px);min-height:230px}.scan-corners{inset:18% 20%}.camera-message{font-size:12px}.operator-footer{padding-top:6px}.operator-app .part-panel{padding:17px 14px}.operator-app .part-info{grid-template-columns:1fr 1fr}.operator-app .work-actions{grid-template-columns:1fr}.operator-app .kiosk-action{min-height:58px}.operator-app .issue-grid{grid-template-columns:1fr 1fr}.operator-app dialog menu{padding-left:0}}
 @media(max-width:380px){.operator-brand small{display:none}.worker-badge{max-width:58vw}.operator-heading h1{font-size:22px}.reader-frame{min-height:210px}.operator-app .issue-grid{grid-template-columns:1fr}}
+
+/* Shop floor signage */
+.signage-page .signage-layout{max-width:1800px;margin:0 auto;padding:clamp(20px,2.2vw,38px)}
+.signage-login{max-width:760px;margin:48px auto;padding:32px}
+.signage-login h1{margin:6px 0 10px;font-size:32px}
+.signage-board{display:block}
+.signage-board.hidden{display:none}
+.signage-heading{align-items:flex-end;margin-bottom:22px}
+.signage-clock{flex:none;padding:12px 16px;border:1px solid #d6e0e7;border-radius:6px;background:#fff;color:#334c5e;font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}
+.signage-updated{font-size:12px;color:#667b8d}
+.signage-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.signage-kpi{display:flex;justify-content:space-between;align-items:center;min-height:92px;padding:18px 22px;background:#fff;border:1px solid #d6e0e7;border-radius:6px}
+.signage-kpi span{color:#63798b;font-size:15px}
+.signage-kpi strong{color:#18364e;font-size:clamp(24px,2.3vw,36px);font-variant-numeric:tabular-nums}
+.signage-columns{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(320px,.85fr);align-items:start;gap:18px}
+.signage-columns>.panel{min-width:0;padding:22px}
+.signage-columns h2{font-size:19px}
+.signage-columns .panel-copy{margin:8px 0 16px}
+.signage-columns .table-wrap{overflow:auto;max-height:calc(100vh - 400px)}
+.signage-columns table{width:100%;min-width:620px}
+.signage-columns th{position:sticky;top:0;z-index:1;background:#f5f8fa}
+.signage-columns td{font-size:14px}
+.signage-columns td small{display:block;margin-top:3px;color:#74899a;font-size:12px}
+.signage-columns .status-pill{white-space:nowrap}
+.signage-operators table{min-width:360px}
+.signage-operators td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+@media(max-width:1050px){.signage-columns{grid-template-columns:1fr}.signage-columns .table-wrap{max-height:none}}
+@media(max-width:640px){.signage-page .signage-layout{padding:16px 12px}.signage-login{margin:20px auto;padding:20px}.signage-login h1{font-size:26px}.signage-kpis{gap:8px}.signage-kpi{min-height:78px;display:block;padding:12px}.signage-kpi span{display:block;font-size:12px}.signage-kpi strong{font-size:22px}.signage-clock{font-size:13px;padding:9px}.signage-heading{align-items:flex-start;gap:12px}.signage-heading h1{font-size:27px}.signage-columns>.panel{padding:15px}.signage-columns .table-wrap{max-height:55vh}}
