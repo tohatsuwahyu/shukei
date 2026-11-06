@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#12324b">
   <title>マスタ・QR発行 | TSH FLOW</title>
   <link rel="icon" href="assets/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=2026110602">
+  <link rel="stylesheet" href="style.css?v=2026110603">
 </head>
 <body data-page="master">
   <div class="shell">
@@ -63,6 +63,13 @@
           </section>
 
           <section class="panel">
+            <div class="panel-head"><div><p class="kicker">BREAK TIME</p><h2>休憩時間</h2></div><button id="breakAdd" type="button" class="btn btn-secondary btn-sm" data-i="plus"><span>追加</span></button></div>
+            <p class="panel-note">ここで設定した時間帯は、作業時間（実作業・タイマー・CSV）から自動で差し引かれます。日本時間で入力してください。</p>
+            <div id="breakRows" class="break-rows"></div>
+            <div class="btn-row"><button id="breakSave" type="button" class="btn btn-primary" data-i="done"><span>休憩時間を保存</span></button></div>
+          </section>
+
+          <section class="panel">
             <div class="panel-head"><div><p class="kicker">BULK IMPORT</p><h2>マスタをCSVで一括登録</h2></div></div>
             <p class="panel-note">既存コードが同じ場合は更新されます。</p>
             <div class="grid-2 tight">
@@ -99,7 +106,7 @@
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <script src="vendor/supabase-js-2.45.4.min.js"></script>
   <script src="vendor/qrcode-1.0.0.min.js"></script>
-  <script src="config.js?v=2026110602"></script>
-  <script src="app.js?v=2026110602"></script>
+  <script src="config.js?v=2026110603"></script>
+  <script src="app.js?v=2026110603"></script>
 </body>
 </html>

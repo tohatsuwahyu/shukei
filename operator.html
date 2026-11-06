@@ -8,7 +8,7 @@
   <title>現場スキャン | TSH FLOW</title>
   <link rel="icon" href="assets/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=2026110602">
+  <link rel="stylesheet" href="style.css?v=2026110603">
 </head>
 <body data-page="operator" class="kiosk">
   <div class="kiosk-app">
@@ -111,6 +111,21 @@
       <menu><button class="btn btn-quiet" data-t="back">戻る</button></menu>
     </form>
   </dialog>
+  <dialog id="qtyDialog" class="dialog">
+    <form method="dialog" id="qtyForm">
+      <h2 data-t="qtyTitle">数量を入力</h2>
+      <p class="muted" id="qtyHint"></p>
+      <div class="qty-row">
+        <label for="qtyGood" data-t="qtyGood">良品数</label>
+        <div class="stepper"><button type="button" class="step" data-step="-1" data-for="qtyGood" aria-label="-1">−</button><input id="qtyGood" type="number" inputmode="decimal" min="0" step="1" value="0"><button type="button" class="step" data-step="1" data-for="qtyGood" aria-label="+1">＋</button></div>
+      </div>
+      <div class="qty-row">
+        <label for="qtyNg" data-t="qtyNg">NG数</label>
+        <div class="stepper"><button type="button" class="step" data-step="-1" data-for="qtyNg" aria-label="-1">−</button><input id="qtyNg" type="number" inputmode="decimal" min="0" step="1" value="0"><button type="button" class="step" data-step="1" data-for="qtyNg" aria-label="+1">＋</button></div>
+      </div>
+      <menu><button value="cancel" class="btn btn-quiet" data-t="cancel">キャンセル</button><button value="default" class="btn btn-primary" data-t="record">記録する</button></menu>
+    </form>
+  </dialog>
   <dialog id="noteDialog" class="dialog">
     <form method="dialog" id="noteForm">
       <h2 id="noteTitle" data-t="noteTitle">理由を入力</h2>
@@ -122,7 +137,7 @@
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <script src="vendor/supabase-js-2.45.4.min.js"></script>
   <script src="vendor/html5-qrcode-2.3.8.min.js"></script>
-  <script src="config.js?v=2026110602"></script>
-  <script src="app.js?v=2026110602"></script>
+  <script src="config.js?v=2026110603"></script>
+  <script src="app.js?v=2026110603"></script>
 </body>
 </html>
