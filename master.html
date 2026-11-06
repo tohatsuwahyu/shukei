@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#102f46">
   <title>マスタ・QR発行 | TSH FLOW</title>
-  <link rel="stylesheet" href="style.css?v=c6eb8a2c">
+  <link rel="stylesheet" href="style.css?v=b1ead9ae">
 </head>
 <body data-page="master">
   <div class="app-shell">
@@ -15,6 +15,7 @@
       <a class="side-link" href="operator.html"><span>▣</span> 現場スキャン</a>
       <a class="side-link" href="admin.html"><span>▤</span> 生産計画</a>
       <a class="side-link" href="dashboard.html"><span>◫</span> 実績・分析</a>
+      <a class="side-link" href="signage.html"><span>▥</span> 現場モニター</a>
       <p class="sidebar-label">SYSTEM</p>
       <a class="side-link active" href="master.html"><span>⚙</span> マスタ・QR</a>
       <a class="side-link" href="guide.html"><span>?</span> 利用ガイド</a>
@@ -49,6 +50,7 @@
           <p id="loginMessage" class="notice"></p>
         </section>
 
+        <section id="masterAccessDenied" class="panel master-denied hidden"><p class="eyebrow">ADMINISTRATOR ACCESS</p><h2>このメニューは管理者専用です</h2><p>作業者・工程マスタの変更は、管理者アカウントでログインしてください。生産管理の方は生産計画と実績・分析をご利用いただけます。</p></section>
         <div id="adminWorkspace">
           <section class="admin-master master-workspace">
             <div class="master-workspace-title"><span class="master-icon">⚙</span><div><h2>作業者・工程マスタ</h2><p>新しい作業者は「作業者を追加・QR発行」から登録します。作業者にメール・PINは必要ありません。</p></div></div>
@@ -114,6 +116,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="config.js?v=f5672f93"></script>
-  <script src="app.js?v=842982a0"></script>
+  <script src="app.js?v=c0fa191f"></script>
 </body>
 </html>
